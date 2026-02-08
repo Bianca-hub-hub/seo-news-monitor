@@ -1,0 +1,27 @@
+name: Update SEO News
+on:
+  schedule:
+    - cron: '0 0 */3 * *' # 设置每 3 天运行一次
+  workflow_dispatch:      # 允许你点击按钮手动运行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: pip install feedparser
+      - name: Run Scraper
+        run: python main.py
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
