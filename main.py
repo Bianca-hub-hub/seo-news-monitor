@@ -3,7 +3,7 @@ import re
 from datetime import datetime, timedelta
 
 # ==========================================
-# 1. 资源配置中心 (已补全所有 SEO 与 AI 核心源)
+# 1. 资源配置中心 (已补全所有核心 SEO 大神)
 # ==========================================
 RSS_SOURCES = {
     "🔥 SEO 大神 & 专家": {
@@ -30,17 +30,14 @@ RSS_SOURCES = {
 }
 
 def clean_html(raw_html):
-    """清理 HTML 并解决部分摘要解析失败的 Bug"""
     if not raw_html: return "点击阅读全文查看详情..."
-    # 处理部分源内容嵌套在 list 中的情况
-    if isinstance(raw_html, list): 
-        raw_html = raw_html[0].get('value', '') if raw_html else ""
+    if isinstance(raw_html, list): raw_html = raw_html[0].get('value', '')
     cleanr = re.compile('<.*?>')
     cleantext = re.sub(cleanr, '', str(raw_html))
     return cleantext[:150] + "..." if len(cleantext) > 150 else cleantext
 
 def fetch_data():
-    # 使用 8 天跨度，抵消 UTC 时区偏差，确保不漏抓最新动态
+    # 扩大至 8 天跨度，抵消时区偏差
     time_limit = datetime.now() - timedelta(days=8)
     html_content = ""
     sidebar_links = ""
@@ -48,28 +45,25 @@ def fetch_data():
     
     for category, sources in RSS_SOURCES.items():
         sidebar_links += f"<div class='nav-group'><h3>{category}</h3>"
-        category_html = f"<div class='category-section'><div class='category-header'><h2>{category}</h2></div><div class='grid'>"
-        found_in_category = False
+        category_inner_html = ""
         
         for name, url in sources.items():
-            # 生成侧边栏快捷链接
             site_link = url.replace('rss.xml', '').replace('feed/', '').replace('feed', '')
             sidebar_links += f"<a href='{site_link}' target='_blank' class='nav-item'>🔗 {name}</a>"
             
             try:
                 feed = feedparser.parse(url)
                 for entry in feed.entries:
-                    # 修复点：多标签日期识别，解决部分网站无法读取日期的问题
+                    # 多标签日期识别
                     dt = entry.get('published_parsed') or entry.get('updated_parsed') or entry.get('created_parsed')
                     
                     if dt and datetime(*dt[:6]) > time_limit:
-                        found_in_category = any_news_found = True
-                        
-                        # 修复点：深度探测摘要内容 (summary -> description -> content)
+                        any_news_found = True
+                        # 多字段内容探测
                         raw_desc = entry.get('summary') or entry.get('description') or (entry.get('content')[0].value if 'content' in entry else "")
                         summary = clean_html(raw_desc)
                         
-                        category_html += f"""
+                        category_inner_html += f"""
                         <div class='card'>
                             <div class='source-tag'>{name}</div>
                             <h3>{entry.title}</h3>
@@ -80,16 +74,13 @@ def fetch_data():
                             </div>
                         </div>
                         """
-            except Exception as e:
-                print(f"Error parsing {name}: {e}")
-                continue
+            except: continue
         
         sidebar_links += "</div>"
-        category_html += "</div></div>"
-        if found_in_category:
-            html_content += category_html
+        if category_inner_html:
+            html_content += f"<div class='category-section'><div class='category-header'><h2>{category}</h2></div><div class='grid'>{category_inner_html}</div></div>"
 
-    # 左右布局 CSS
+    # CSS 样式增强 (包含侧边栏)
     style = """
     <style>
         :root { --primary: #1a73e8; --bg: #f8f9fa; }
@@ -97,11 +88,11 @@ def fetch_data():
         .sidebar { width: 260px; background: #fff; height: 100vh; position: fixed; border-right: 1px solid #dadce0; padding: 25px 15px; overflow-y: auto; }
         .sidebar h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
         .nav-group { margin-bottom: 25px; }
-        .nav-group h3 { font-size: 0.75rem; color: #70757a; text-transform: uppercase; margin-bottom: 10px; padding-left: 5px; }
-        .nav-item { display: block; padding: 8px 10px; color: #444; text-decoration: none; font-size: 0.85rem; border-radius: 6px; margin-bottom: 4px; transition: 0.2s; }
+        .nav-group h3 { font-size: 0.75rem; color: #70757a; text-transform: uppercase; margin-bottom: 10px; }
+        .nav-item { display: block; padding: 8px 10px; color: #444; text-decoration: none; font-size: 0.85rem; border-radius: 6px; margin-bottom: 4px; }
         .nav-item:hover { background: #e8f0fe; color: var(--primary); }
         .main-content { margin-left: 290px; flex: 1; padding: 40px; }
-        .category-header { margin: 30px 0 20px; border-left: 6px solid var(--primary); padding-left: 15px; background: #fff; padding: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .category-header { margin: 30px 0 20px; border-left: 6px solid var(--primary); padding: 10px 15px; background: #fff; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
         .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; transition: 0.3s; border: 1px solid #eee; }
         .card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
@@ -118,7 +109,7 @@ def fetch_data():
     full_html = f"""
     <!DOCTYPE html>
     <html lang="zh-CN">
-    <head><meta charset="utf-8"><title>SEO/AI 专家情报站</title>{style}</head>
+    <head><meta charset="utf-8"><title>SEO/AI 情报监控站</title>{style}</head>
     <body>
         <div class="sidebar"><h2>🔍 资源目录</h2>{sidebar_links}</div>
         <div class="main-content">
@@ -126,7 +117,7 @@ def fetch_data():
                 <h1>🚀 SEO & AI 专家情报站</h1>
                 <p>自动汇总过去 7 天动态 | 更新时间 (UTC): {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
             </div>
-            {html_content if any_news_found else "<div style='text-align:center; padding-top:100px; color:#999;'>最近 7 天暂无新发文，请通过左侧目录直接访问官网。</div>"}
+            {html_content if any_news_found else "<div style='text-align:center; padding-top:100px; color:#999;'>最近 7 天暂无新发文，请通过左侧目录访问官网。</div>"}
         </div>
     </body>
     </html>
