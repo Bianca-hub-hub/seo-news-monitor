@@ -1,262 +1,198 @@
-<html><head><meta charset='utf-8'><title>SEO & AI 监控</title>
+
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SEO & AI 专家情报站</title>
+        
     <style>
-        body { font-family: -apple-system, sans-serif; background: #f0f2f5; color: #1c1e21; padding: 40px 20px; max-width: 1200px; margin: 0 auto; }
-        h1 { text-align: center; color: #1a73e8; font-size: 2.5rem; margin-bottom: 10px; }
-        .category-header { margin: 40px 0 20px; padding: 10px 20px; background: #fff; border-radius: 8px; border-left: 6px solid #1a73e8; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
-        .card { background: #fff; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: 0.3s; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-        .source-tag { font-size: 0.7rem; background: #e8f0fe; color: #1967d2; padding: 3px 8px; border-radius: 4px; font-weight: bold; align-self: flex-start; margin-bottom: 12px; }
-        h3 { font-size: 1.1rem; margin: 0 0 12px; line-height: 1.4; color: #000; }
-        .summary { font-size: 0.9rem; color: #606770; flex-grow: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; margin-bottom: 15px; }
-        .card-footer { display: flex; justify-content: space-between; align-items: center; pt: 15px; border-top: 1px solid #eee; }
-        .date { font-size: 0.8rem; color: #8d949e; }
-        .btn { background: #1a73e8; color: #fff; text-decoration: none; padding: 6px 15px; border-radius: 6px; font-size: 0.85rem; font-weight: 500; }
+        :root { --primary: #1a73e8; --bg: #f8f9fa; --text: #202124; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; max-width: 1200px; margin: 0 auto; line-height: 1.5; }
+        h1 { text-align: center; color: var(--primary); font-size: 2.8rem; margin-bottom: 10px; }
+        .update-time { text-align: center; color: #70757a; margin-bottom: 40px; font-size: 0.9rem; }
+        .category-header { margin: 40px 0 20px; padding: 10px 25px; background: #fff; border-radius: 12px; border-left: 8px solid var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+        .card { background: #fff; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; border: 1px solid #eee; }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 12px 24px rgba(0,0,0,0.12); }
+        .source-tag { font-size: 0.75rem; background: #e8f0fe; color: var(--primary); padding: 4px 10px; border-radius: 6px; font-weight: 700; align-self: flex-start; margin-bottom: 15px; text-transform: uppercase; }
+        h3 { font-size: 1.25rem; margin: 0 0 15px; line-height: 1.4; color: #1c1e21; }
+        .summary { font-size: 0.95rem; color: #5f6368; flex-grow: 1; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #f1f3f4; }
+        .date { font-size: 0.85rem; color: #70757a; font-weight: 500; }
+        .btn { background: var(--primary); color: #fff; text-decoration: none; padding: 8px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; transition: background 0.2s; }
+        .btn:hover { background: #1557b0; }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } h1 { font-size: 2rem; } }
     </style>
-    </head><body><h1>🚀 SEO & AI 深度快报</h1><p style='text-align:center;'>每 3 天自动更新一次（当前 UTC: 2026-02-08 09:34）</p><div class='category-header'><h2>AI News & Tech</h2></div><div class='grid'>
-                    <div class='card'>
-                        <div class='source-tag'>OpenAI News</div>
-                        <h3>Making AI work for everyone, everywhere: our approach to localization</h3>
-                        <p class='summary'>OpenAI shares its approach to AI localization, showing how globally shared frontier models can be adapted to local languages, laws, and cultures witho...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-06</span>
-                            <a href='https://openai.com/index/our-approach-to-localization' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>OpenAI News</div>
-                        <h3>Korea privacy policy</h3>
-                        <p class='summary'>Korea privacy policy</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-06</span>
-                            <a href='https://openai.com/policies/kr-privacy-policy' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>OpenAI News</div>
-                        <h3>GPT-5 lowers the cost of cell-free protein synthesis</h3>
-                        <p class='summary'>An autonomous lab combining OpenAI’s GPT-5 with Ginkgo Bioworks’ cloud automation cut cell-free protein synthesis costs by 40% through closed-loop exp...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-05</span>
-                            <a href='https://openai.com/index/gpt-5-lowers-protein-synthesis-cost' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>OpenAI News</div>
-                        <h3>Introducing Trusted Access for Cyber</h3>
-                        <p class='summary'>OpenAI introduces Trusted Access for Cyber, a trust-based framework that expands access to frontier cyber capabilities while strengthening safeguards ...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-05</span>
-                            <a href='https://openai.com/index/trusted-access-for-cyber' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>AI News</div>
-                        <h3>How separating logic and search boosts AI agent scalability</h3>
-                        <p class='summary'><p>Separating logic from inference improves AI agent scalability by decoupling core workflows from execution strategies. The transition from generativ...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-06</span>
-                            <a href='https://www.artificialintelligence-news.com/news/how-separating-logic-and-search-boosts-ai-agent-scalability/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>AI News</div>
-                        <h3>Intuit, Uber, and State Farm trial AI agents inside enterprise workflows</h3>
-                        <p class='summary'><p>The way large companies use artificial intelligence is changing. For years, AI in business meant experimenting with tools that could answer questio...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-06</span>
-                            <a href='https://www.artificialintelligence-news.com/news/intuit-uber-and-state-farm-trial-ai-agents-inside-enterprise-workflows/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>AI News</div>
-                        <h3>SuperCool review: Evaluating the reality of autonomous creation</h3>
-                        <p class='summary'><p>In the current landscape of generative artificial intelligence, we have reached a saturation point with assistants. Most users are familiar with th...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-06</span>
-                            <a href='https://www.artificialintelligence-news.com/news/supercool-review-evaluating-the-reality-of-autonomous-creation/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>AI News</div>
-                        <h3>Top 7 best AI penetration testing companies in 2026</h3>
-                        <p class='summary'><p>Penetration testing has always existed to answer one practical concern: what actually happens when a motivated attacker targets a real system. For ...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-06</span>
-                            <a href='https://www.artificialintelligence-news.com/news/top-7-best-ai-penetration-testing-companies-in-2026/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>AI News</div>
-                        <h3>AI Expo 2026 Day 2: Moving experimental pilots to AI production</h3>
-                        <p class='summary'><p>The second day of the co-located AI &#38; Big Data Expo and Digital Transformation Week in London showed a market in a clear transition. Early exci...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-05</span>
-                            <a href='https://www.artificialintelligence-news.com/news/ai-expo-2026-day-2-moving-experimental-pilots-ai-production/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>AI News</div>
-                        <h3>Microsoft unveils method to detect sleeper agent backdoors</h3>
-                        <p class='summary'><p>Researchers from Microsoft have unveiled a scanning method to identify poisoned models without knowing the trigger or intended outcome. Organisatio...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-05</span>
-                            <a href='https://www.artificialintelligence-news.com/news/microsoft-unveils-method-detect-sleeper-agent-backdoors/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    </div><div class='category-header'><h2>SEO Authority</h2></div><div class='grid'>
-                    <div class='card'>
-                        <div class='source-tag'>Semrush blog</div>
-                        <h3>How to Automate Google Business Profile Management with Semrush</h3>
-                        <p class='summary'><p><img alt="How to Automate Google Business Profile Management with Semrush" src="https://static.semrush.com/blog/uploads/media/98/53/98532bcdbaa526a...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-06</span>
-                            <a href='https://www.semrush.com/blog/how-to-automate-google-business-profile-management-with-semrush/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Semrush blog</div>
-                        <h3>13 SEO Tips to Boost Your Search Visibility</h3>
-                        <p class='summary'><p><img alt="13 SEO Tips to Boost Your Search Visibility" src="https://static.semrush.com/blog/uploads/media/32/62/32628d39b5138cc13c2e7afe4695fe99/07...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-06</span>
-                            <a href='https://www.semrush.com/blog/seo-tips/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Semrush blog</div>
-                        <h3>7 Sitemap Examples: XML, HTML, and Visual Sitemaps</h3>
-                        <p class='summary'><p><img alt="7 Sitemap Examples: XML, HTML, and Visual Sitemaps" src="https://static.semrush.com/blog/uploads/media/c5/a1/c5a1e4e7049ef122ebe4e29e1317...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-05</span>
-                            <a href='https://www.semrush.com/blog/sitemap-examples/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Semrush blog</div>
-                        <h3>AI Overviews: What Are They & How to Optimize for Them</h3>
-                        <p class='summary'><p><img alt="AI Overviews: What Are They &amp; How to Optimize for Them" src="https://static.semrush.com/blog/uploads/media/1b/1a/1b1aae9efa2017d86f8c...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-05</span>
-                            <a href='https://www.semrush.com/blog/ai-overviews/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Search Engine Journal</div>
-                        <h3>90 Days. 1 Plan. Improved Local Search Visibility [Webinar] via @sejournal, @hethr_campbell</h3>
-                        <p class='summary'><p>Learn how to boost visibility for each location in your network. A practical 90 Day Plan can make your brand AI-ready.</p>
-<p>The post <a href="htt...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-06</span>
-                            <a href='https://www.searchenginejournal.com/90-days-improved-local-search-visibility/566687/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Search Engine Journal</div>
-                        <h3>Google Revises Discover Guidelines Alongside Core Update via @sejournal, @MattGSouthern</h3>
-                        <p class='summary'><p>Google updated its "Get on Discover" docs, adding page experience guidance and naming clickbait and sensationalism, alongside the February Discover...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-06</span>
-                            <a href='https://www.searchenginejournal.com/google-revises-discover-guidelines-alongside-core-update/566748/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Search Engine Journal</div>
-                        <h3>Discover Core Update, AI Mode Ads & Crawl Policy – SEO Pulse via @sejournal, @MattGSouthern</h3>
-                        <p class='summary'><p>This week’s SEO Pulse covers ranking volatility inside Discover, expanding AI ad inventory, and growing scrutiny of bot-facing content practices.</...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-06</span>
-                            <a href='https://www.searchenginejournal.com/discover-core-update-ai-mode-ads-crawl-policy-seo-pulse/566659/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Search Engine Journal</div>
-                        <h3>Microsoft’s Publisher Marketplace, Google Tag Update & Multi-Party Approvals – PPC Pulse via @sejournal, @brookeosmundson</h3>
-                        <p class='summary'><p>This week's PPC Pulse recaps Microsoft’s push to rethink content compensation and Google’s latest changes to tagging standards and account protecti...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-06</span>
-                            <a href='https://www.searchenginejournal.com/ppc-pulse-microsofts-publisher-marketplace-google-tag/566641/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Search Engine Journal</div>
-                        <h3>Google Shows How To Check Passage Indexing via @sejournal, @martinibuster</h3>
-                        <p class='summary'><p>Google's John Mueller offered a simple solution to the question of whether a passage is indexed and is ready to rank.</p>
-<p>The post <a href="http...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-05</span>
-                            <a href='https://www.searchenginejournal.com/how-check-if-entire-document-is-indexed/566661/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Search Engine Journal</div>
-                        <h3>What 1,000 Businesses Reveal About Growth in 2026 [Webinar] via @sejournal, @hethr_campbell</h3>
-                        <p class='summary'><p>Join Jeff Hirz as he unveils key insights on growth and efficiency based on data from 1,000 businesses planning for 2026.</p>
-<p>The post <a href="...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-05</span>
-                            <a href='https://www.searchenginejournal.com/what-businesses-reveal-about-growth/566414/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Search Engine Journal</div>
-                        <h3>Google Releases Core Update Targeting Discover Feed via @sejournal, @MattGSouthern</h3>
-                        <p class='summary'><p>Google has started a Discover core update. The rollout may take up to two weeks, with expansion to more countries and languages later.</p>
-<p>The p...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-05</span>
-                            <a href='https://www.searchenginejournal.com/google-releases-discover-focused-core-update/566647/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Search Engine Journal</div>
-                        <h3>The Shift From Search Sessions To Decision Sessions via @sejournal, @DuaneForrester</h3>
-                        <p class='summary'><p>AI Mode personal search points to a future where decisions happen inside the answer layer, and this article explains how to prepare.</p>
-<p>The pos...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-05</span>
-                            <a href='https://www.searchenginejournal.com/the-shift-from-search-sessions-to-decision-sessions/566291/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Search Engine Journal</div>
-                        <h3>Is Google Finally Cracking Down On Self-Promotional Listicles? via @sejournal, @lilyraynyc</h3>
-                        <p class='summary'><p>An analysis of recent Google ranking volatility shows how self-serving listicles may be undermining trust, reviews quality signals, and long-term S...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-05</span>
-                            <a href='https://www.searchenginejournal.com/is-google-finally-cracking-down-on-self-promotional-listicles/566529/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    
-                    <div class='card'>
-                        <div class='source-tag'>Search Engine Journal</div>
-                        <h3>Is Your Internal Linking Helping Or Hurting Topical Authority? Ask An SEO via @sejournal, @HelenPollitt1</h3>
-                        <p class='summary'><p>Learn how to evaluate internal linking structures to ensure they reinforce topical authority instead of weakening page relevance and intent.</p>
-<p...</p>
-                        <div class='card-footer'>
-                            <span class='date'>2026-02-05</span>
-                            <a href='https://www.searchenginejournal.com/is-your-internal-linking-helping-or-hurting-topical-authority-ask-an-seo/565745/' target='_blank' class='btn'>阅读全文 →</a>
-                        </div>
-                    </div>
-                    </div></body></html>
+    
+    </head>
+    <body>
+        <h1>🚀 SEO & AI 专家情报站</h1>
+        <p class="update-time">每 3 天自动同步专家动态 | 当前快报时间: 2026-02-08 09:45 (UTC)</p>
+        <div class='category-header'><h2>🤖 AI 核心资讯</h2></div><div class='grid'>
+                            <div class='card'>
+                                <div class='source-tag'>OpenAI News</div>
+                                <h3>Making AI work for everyone, everywhere: our approach to localization</h3>
+                                <p class='summary'>OpenAI shares its approach to AI localization, showing how globally shared frontier models can be adapted to local languages, laws, and cultures witho...</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-06</span>
+                                    <a href='https://openai.com/index/our-approach-to-localization' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>OpenAI News</div>
+                                <h3>Korea privacy policy</h3>
+                                <p class='summary'>Korea privacy policy</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-06</span>
+                                    <a href='https://openai.com/policies/kr-privacy-policy' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>OpenAI News</div>
+                                <h3>GPT-5 lowers the cost of cell-free protein synthesis</h3>
+                                <p class='summary'>An autonomous lab combining OpenAI’s GPT-5 with Ginkgo Bioworks’ cloud automation cut cell-free protein synthesis costs by 40% through closed-loop exp...</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-05</span>
+                                    <a href='https://openai.com/index/gpt-5-lowers-protein-synthesis-cost' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>OpenAI News</div>
+                                <h3>Introducing Trusted Access for Cyber</h3>
+                                <p class='summary'>OpenAI introduces Trusted Access for Cyber, a trust-based framework that expands access to frontier cyber capabilities while strengthening safeguards ...</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-05</span>
+                                    <a href='https://openai.com/index/trusted-access-for-cyber' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>AI News</div>
+                                <h3>How separating logic and search boosts AI agent scalability</h3>
+                                <p class='summary'>Separating logic from inference improves AI agent scalability by decoupling core workflows from execution strategies. The transition from generative A...</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-06</span>
+                                    <a href='https://www.artificialintelligence-news.com/news/how-separating-logic-and-search-boosts-ai-agent-scalability/' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>AI News</div>
+                                <h3>Intuit, Uber, and State Farm trial AI agents inside enterprise workflows</h3>
+                                <p class='summary'>The way large companies use artificial intelligence is changing. For years, AI in business meant experimenting with tools that could answer questions ...</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-06</span>
+                                    <a href='https://www.artificialintelligence-news.com/news/intuit-uber-and-state-farm-trial-ai-agents-inside-enterprise-workflows/' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>AI News</div>
+                                <h3>SuperCool review: Evaluating the reality of autonomous creation</h3>
+                                <p class='summary'>In the current landscape of generative artificial intelligence, we have reached a saturation point with assistants. Most users are familiar with the r...</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-06</span>
+                                    <a href='https://www.artificialintelligence-news.com/news/supercool-review-evaluating-the-reality-of-autonomous-creation/' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>AI News</div>
+                                <h3>Top 7 best AI penetration testing companies in 2026</h3>
+                                <p class='summary'>Penetration testing has always existed to answer one practical concern: what actually happens when a motivated attacker targets a real system. For man...</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-06</span>
+                                    <a href='https://www.artificialintelligence-news.com/news/top-7-best-ai-penetration-testing-companies-in-2026/' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>AI News</div>
+                                <h3>AI Expo 2026 Day 2: Moving experimental pilots to AI production</h3>
+                                <p class='summary'>The second day of the co-located AI &#38; Big Data Expo and Digital Transformation Week in London showed a market in a clear transition. Early excitem...</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-05</span>
+                                    <a href='https://www.artificialintelligence-news.com/news/ai-expo-2026-day-2-moving-experimental-pilots-ai-production/' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>AI News</div>
+                                <h3>Microsoft unveils method to detect sleeper agent backdoors</h3>
+                                <p class='summary'>Researchers from Microsoft have unveiled a scanning method to identify poisoned models without knowing the trigger or intended outcome. Organisations ...</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-05</span>
+                                    <a href='https://www.artificialintelligence-news.com/news/microsoft-unveils-method-detect-sleeper-agent-backdoors/' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            </div><div class='category-header'><h2>🏢 官方与大厂动态</h2></div><div class='grid'>
+                            <div class='card'>
+                                <div class='source-tag'>Semrush blog</div>
+                                <h3>How to Automate Google Business Profile Management with Semrush</h3>
+                                <p class='summary'>Automate Google Business Profile management with Semrush’s GBP AI Agent. Save time, stay active, and support local visibility.</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-06</span>
+                                    <a href='https://www.semrush.com/blog/how-to-automate-google-business-profile-management-with-semrush/' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>Semrush blog</div>
+                                <h3>13 SEO Tips to Boost Your Search Visibility</h3>
+                                <p class='summary'>Top SEO tips include targeting the right terms, updating your content, and prioritizing readability.</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-06</span>
+                                    <a href='https://www.semrush.com/blog/seo-tips/' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>Semrush blog</div>
+                                <h3>7 Sitemap Examples: XML, HTML, and Visual Sitemaps</h3>
+                                <p class='summary'>See XML, HTML, and visual sitemap examples from real sites—plus guidance on what to include in yours.</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-05</span>
+                                    <a href='https://www.semrush.com/blog/sitemap-examples/' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>Semrush blog</div>
+                                <h3>AI Overviews: What Are They & How to Optimize for Them</h3>
+                                <p class='summary'>AI Overviews are AI-generated summaries that appear for some search queries in Google.</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-05</span>
+                                    <a href='https://www.semrush.com/blog/ai-overviews/' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>SEO Blog by Ahrefs</div>
+                                <h3>How to Choose the Best Prompts to Monitor Your AI Search Visibility</h3>
+                                <p class='summary'>After all, conversing with AI is unlike how we would traditionally search, since requests can be far more detailed, or occur in the middle of longer c...</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-05</span>
+                                    <a href='https://ahrefs.com/blog/custom-prompt-tracking/' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            
+                            <div class='card'>
+                                <div class='source-tag'>moz (en-US)</div>
+                                <h3>How to Build AI Citations — Whiteboard Friday</h3>
+                                <p class='summary'>Learn how to build AI citations and rank in ChatGPT and Gemini. Charlie Marchant explains how to research prompts, analyze sources, and use proactive ...</p>
+                                <div class='card-footer'>
+                                    <span class='date'>📅 2026-02-06</span>
+                                    <a href='https://moz.com/blog/how-to-build-ai-citations-whiteboard-friday' target='_blank' class='btn'>阅读全文 →</a>
+                                </div>
+                            </div>
+                            </div>
+        <footer style="text-align:center; margin-top:80px; color:#bdc3c7; font-size:0.8rem;">
+            Powered by GitHub Actions & Python Scraper
+        </footer>
+    </body>
+    </html>
+    
