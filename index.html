@@ -1,331 +1,387 @@
 
     <!DOCTYPE html>
     <html>
-    <head><meta charset='utf-8'><title>SEO Intelligence Dashboard</title>
+    <head><meta charset='utf-8'><title>SEO Integrated Dashboard</title>
     <style>
-        :root { --sidebar-w: 260px; --bg: #f4f6f8; --card-bg: #ffffff; --primary: #2563eb; --text: #1e293b; --text-light: #64748b; }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+        :root { --bg: #f3f4f6; --card-bg: #fff; --primary: #2563eb; --text: #1f2937; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; display: flex; gap: 30px; }
         
-        /* Sidebar */
-        .sidebar { width: var(--sidebar-w); background: #fff; border-right: 1px solid #e2e8f0; padding: 24px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 32px; display: flex; align-items: center; gap: 10px; }
-        .nav-group { margin-bottom: 24px; }
-        .nav-title { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.05em; }
-        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: var(--text-light); text-decoration: none; border-radius: 8px; font-size: 0.9rem; font-weight: 500; transition: 0.2s; margin-bottom: 4px; }
-        .nav-item:hover, .nav-item.active { background: #eff6ff; color: var(--primary); }
-        .social-links { margin-top: auto; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        /* 左侧边栏 */
+        .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 20px; height: fit-content; }
+        .logo { font-size: 1.5rem; font-weight: 800; margin-bottom: 30px; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .nav-item { padding: 10px; margin-bottom: 5px; cursor: pointer; border-radius: 8px; font-weight: 500; color: #4b5563; }
+        .nav-item.active, .nav-item:hover { background: #dbeafe; color: var(--primary); }
+        .nav-header { font-size: 0.75rem; text-transform: uppercase; color: #9ca3af; margin: 20px 0 10px; font-weight: 700; }
 
-        /* Main Area */
-        .main { flex: 1; overflow-y: auto; padding: 32px 40px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
-        .page-title { font-size: 1.5rem; font-weight: 700; }
-        .filters { display: flex; gap: 8px; background: #e2e8f0; padding: 4px; border-radius: 8px; }
-        .filter-btn { border: none; background: none; padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: var(--text-light); cursor: pointer; }
-        .filter-btn.active { background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        /* 主区域 */
+        .main-content { flex: 1; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
 
-        /* Insights Box (参考图核心) */
-        .insights-box { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0; margin-bottom: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        .box-header { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
-        .insight-row { margin-bottom: 16px; font-size: 0.95rem; line-height: 1.6; border-bottom: 1px dashed #f1f5f9; padding-bottom: 16px; }
-        .insight-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .insight-label { color: var(--primary); font-weight: 700; margin-bottom: 4px; font-size: 0.85rem; text-transform: uppercase; }
-        .insight-content a { color: var(--text); text-decoration: none; font-weight: 500; border-bottom: 1px solid #cbd5e1; transition: 0.2s; }
-        .insight-content a:hover { color: var(--primary); border-color: var(--primary); }
-        .read-more { font-size: 0.75rem; color: #94a3b8; margin-left: 8px; cursor: pointer; }
-
-        /* Card Grid */
-        .grid-title { font-size: 1rem; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
-        .card { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; transition: 0.2s; position: relative; }
-        .card:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
-        .card.is-read { opacity: 0.6; filter: grayscale(1); }
-        .card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .source-tag { font-size: 0.7rem; font-weight: 700; color: var(--primary); background: #eff6ff; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
-        .date { font-size: 0.75rem; color: #94a3b8; }
-        .card h3 { font-size: 1.1rem; font-weight: 600; margin: 0 0 12px 0; line-height: 1.4; color: var(--text); }
-        .card p { font-size: 0.9rem; color: var(--text-light); line-height: 1.6; flex: 1; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .card-footer { border-top: 1px solid #f1f5f9; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; }
+        /* 卡片通用样式 */
+        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb; transition: 0.2s; display: flex; flex-direction: column; position: relative; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: var(--primary); }
         
-        /* Buttons */
-        .action-btn { background: none; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; color: var(--text-light); transition: 0.2s; }
-        .action-btn:hover { border-color: var(--text-light); color: var(--text); }
-        .btn-primary { background: var(--text); color: #fff; border: none; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; }
-        .btn-primary:hover { background: #0f172a; }
+        /* 交互状态样式 */
+        .card.is-read { opacity: 0.6; filter: grayscale(1); order: 9999; background: #f9fafb; }
+        .card.is-fav { border: 2px solid #fbbf24; order: -9999; } /* 收藏置顶 */
+        .fav-btn { position: absolute; top: 10px; right: 10px; z-index: 10; font-size: 1.2rem; cursor: pointer; background: rgba(255,255,255,0.8); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .fav-btn.active { color: #d97706; background: #fffbeb; }
+
+        /* 内容布局 */
+        .card-body { padding: 16px; display: flex; flex-direction: column; flex: 1; }
+        .meta { font-size: 0.75rem; color: #6b7280; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .src-badge { padding: 2px 6px; border-radius: 4px; background: #eff6ff; color: var(--primary); font-weight: 600; }
+        h3 { font-size: 1rem; margin: 0 0 8px 0; line-height: 1.4; color: #111827; }
+        h3 a { text-decoration: none; color: inherit; }
+        h3 a:hover { color: var(--primary); }
+        p { font-size: 0.85rem; color: #4b5563; line-height: 1.5; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* YouTube 特有样式 */
+        .video-thumb { width: 100%; height: 160px; object-fit: cover; background: #000; }
+        .play-icon { position: absolute; top: 70px; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 2rem; opacity: 0.9; text-shadow: 0 2px 4px rgba(0,0,0,0.5); pointer-events: none; }
         
-        .video-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        /* Twitter 特有样式 */
+        .tweet-card { border-left: 4px solid #1da1f2; }
+        .tweet-icon { color: #1da1f2; font-size: 0.8rem; }
+
+        .hidden { display: none !important; }
     </style>
     </head>
     <body>
-        <div class='sidebar'>
-            <div class='logo'>🚀 SEO.Intel</div>
-            <div class='nav-group'>
-                <div class='nav-title'>Dashboards</div>
-                <a href='#' class='nav-item active'>📊 Overview</a>
-                <a href='#' class='nav-item'>⭐ Favorites</a>
+        <div class="container">
+            <div class="sidebar">
+                <div class="logo">🚀 SEO.Intel</div>
+                
+                <div class="nav-header">Dashboard</div>
+                <div class="nav-item active" onclick="filter('all')">📊 全部动态</div>
+                <div class="nav-item" onclick="filter('fav')">⭐️ 我的收藏</div>
+                
+                <div class="nav-header">Filter by Type</div>
+                <div class="nav-item" onclick="filter('video')">📺 仅看视频</div>
+                
+                <div class="nav-header">Quick Links</div>
+                <div class="nav-item" style="cursor:default; color:#999;">Updating: 10:12</div>
             </div>
-            <div class='nav-group'>
-                <div class='nav-title'>Feeds</div>
-                <a href='#' class='nav-item'>🌍 Google</a><a href='#' class='nav-item'>🤖 AI</a><a href='#' class='nav-item'>⚡ 实战技巧</a><a href='#' class='nav-item'>📺 视频与社交动态</a>
-            </div>
-            <div class='social-links'>
-                <div class='nav-title'>Social Pulse</div>
-                <a href='https://x.com/zarazhangrui' target='_blank' class='nav-item'>𝕏 Zara Zhang</a>
-                <a href='https://www.youtube.com/channel/UCWf2ZlNsCGDS89VBF_awNvA' target='_blank' class='nav-item'>📺 Google Search Central</a>
-            </div>
-        </div>
-
-        <div class='main'>
-            <div class='header'>
-                <div class='page-title'>Intelligence Briefing</div>
-                <div class='filters'>
-                    <button class='filter-btn' data-days='3'>3 Days</button>
-                    <button class='filter-btn active' data-days='7'>7 Days</button>
-                    <button class='filter-btn' data-days='30'>30 Days</button>
+            
+            <div class="main-content">
+                <div class="grid">
+                    
+        <div class='card ' id='exharnessengineering'>
+            <button class='fav-btn' onclick="toggleFav('exharnessengineering', this)">☆</button>
+            <a href='https://openai.com/index/harness-engineering' target='_blank' onclick="toggleRead('exharnessengineering')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-11</span>
+                    </div>
+                    <h3>Harness engineering: leveraging Codex in an agent-first world</h3>
+                    <p>By Ryan Lopopolo, Member of the Technical Staff</p>
                 </div>
-            </div>
-
-            <div class='insights-box'>
-                <div class='box-header'>⚡ Weekly SEO Insights Summary</div>
+            </a>
+        </div>
+        
+        <div class='card ' id='ingchatgpttogenaimil'>
+            <button class='fav-btn' onclick="toggleFav('ingchatgpttogenaimil', this)">☆</button>
+            <a href='https://openai.com/index/bringing-chatgpt-to-genaimil' target='_blank' onclick="toggleRead('ingchatgpttogenaimil')" style="text-decoration:none; color:inherit;">
                 
-            <div class='insight-row'>
-                <div class='insight-label'>Core Update Trends:</div>
-                <div class='insight-content'><a href='https://ahrefs.com/blog/chatgpt-has-12-percent-of-googles-search-volume/' target='_blank'>ChatGPT Has 12% of Google’s Search Volume but Google Sends 190x More Traffic to Websites</a>。 <a href='https://ahrefs.com/blog/gsc-anonymized-queries/' target='_blank'>Anonymized Queries Make Up Nearly Half of Google Search Console Traffic</a>... <span class='read-more'>[Read Insights]</span></div>
-            </div>
-            
-            <div class='insight-row'>
-                <div class='insight-label'>AI Trends:</div>
-                <div class='insight-content'><a href='https://blog.hubspot.com/marketing/aeo-audit' target='_blank'>AI engine optimization audit: How to audit your content for AI search engines</a>。 <a href='https://openai.com/index/bringing-chatgpt-to-genaimil' target='_blank'>Bringing ChatGPT to GenAI.mil</a>。 <a href='https://openai.com/index/testing-ads-in-chatgpt' target='_blank'>Testing ads in ChatGPT</a>... <span class='read-more'>[Read Insights]</span></div>
-            </div>
-            
-            <div class='insight-row'>
-                <div class='insight-label'>Content Trends:</div>
-                <div class='insight-content'><a href='https://openai.com/index/harness-engineering' target='_blank'>Harness engineering: leveraging Codex in an agent-first world</a>。 <a href='https://ahrefs.com/blog/eeat-audit/' target='_blank'>E-E-A-T Audit: 220+ Markers That Measure Experience, Expertise, Authority, and Trust</a>。 <a href='https://blog.hubspot.com/marketing/aeo-vs-seo' target='_blank'>Answer engine optimization vs. traditional SEO: What marketers need to know</a>... <span class='read-more'>[Read Insights]</span></div>
-            </div>
-            
-            </div>
-
-            <div class='grid-title'>
-                <span>Latest Updates (12)</span>
-                <span style='font-size:0.8rem; color:#94a3b8;'>Auto-synced just now</span>
-            </div>
-            <div class='grid'>
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-09</span>
+                    </div>
+                    <h3>Bringing ChatGPT to GenAI.mil</h3>
+                    <p>OpenAI for Government announces the deployment of a custom ChatGPT on GenAI.mil, bringing secure, sa...</p>
+                </div>
+            </a>
+        </div>
+        
+        <div class='card ' id='xtestingadsinchatgpt'>
+            <button class='fav-btn' onclick="toggleFav('xtestingadsinchatgpt', this)">☆</button>
+            <a href='https://openai.com/index/testing-ads-in-chatgpt' target='_blank' onclick="toggleRead('xtestingadsinchatgpt')" style="text-decoration:none; color:inherit;">
                 
-        <div class='card' id='fgooglessearchvolume' data-ts='1770820574'>
-            
-            <div class='card-meta'>
-                <span class='source-tag'>Ahrefs Blog</span>
-                <span class='date'>2026-02-11</span>
-            </div>
-            <h3>ChatGPT Has 12% of Google’s Search Volume but Google Sends 190x More Traffic to Websites</h3>
-            <p>While ChatGPT has nearly a fifth of Google’s query volume, people use the platforms in different ways. I wanted to see h...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('fgooglessearchvolume', this)">Mark Read</button>
-                <a href='https://ahrefs.com/blog/chatgpt-has-12-percent-of-googles-search-volume/' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-09</span>
+                    </div>
+                    <h3>Testing ads in ChatGPT</h3>
+                    <p>OpenAI begins testing ads in ChatGPT to support free access, with clear labeling, answer independenc...</p>
+                </div>
+            </a>
         </div>
         
-        <div class='card' id='gscanonymizedqueries' data-ts='1770819273'>
-            
-            <div class='card-meta'>
-                <span class='source-tag'>Ahrefs Blog</span>
-                <span class='date'>2026-02-11</span>
-            </div>
-            <h3>Anonymized Queries Make Up Nearly Half of Google Search Console Traffic</h3>
-            <p>This number is slightly higher than our 2022 study on anonymized queries. However, that’s the average. Some websites in ...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('gscanonymizedqueries', this)">Mark Read</button>
-                <a href='https://ahrefs.com/blog/gsc-anonymized-queries/' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
+        <div class='card ' id='proachtolocalization'>
+            <button class='fav-btn' onclick="toggleFav('proachtolocalization', this)">☆</button>
+            <a href='https://openai.com/index/our-approach-to-localization' target='_blank' onclick="toggleRead('proachtolocalization')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-06</span>
+                    </div>
+                    <h3>Making AI work for everyone, everywhere: our approach to localization</h3>
+                    <p>OpenAI shares its approach to AI localization, showing how globally shared frontier models can be ad...</p>
+                </div>
+            </a>
         </div>
         
-        <div class='card' id='exharnessengineering' data-ts='1770800400'>
-            
-            <div class='card-meta'>
-                <span class='source-tag'>OpenAI News</span>
-                <span class='date'>2026-02-11</span>
-            </div>
-            <h3>Harness engineering: leveraging Codex in an agent-first world</h3>
-            <p>By Ryan Lopopolo, Member of the Technical Staff</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('exharnessengineering', this)">Mark Read</button>
-                <a href='https://openai.com/index/harness-engineering' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
+        <div class='card ' id='proteinsynthesiscost'>
+            <button class='fav-btn' onclick="toggleFav('proteinsynthesiscost', this)">☆</button>
+            <a href='https://openai.com/index/gpt-5-lowers-protein-synthesis-cost' target='_blank' onclick="toggleRead('proteinsynthesiscost')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-05</span>
+                    </div>
+                    <h3>GPT-5 lowers the cost of cell-free protein synthesis</h3>
+                    <p>An autonomous lab combining OpenAI’s GPT-5 with Ginkgo Bioworks’ cloud automation cut cell-free prot...</p>
+                </div>
+            </a>
         </div>
         
-        <div class='card' id='refscomblogeeataudit' data-ts='1770759344'>
-            
-            <div class='card-meta'>
-                <span class='source-tag'>Ahrefs Blog</span>
-                <span class='date'>2026-02-10</span>
-            </div>
-            <h3>E-E-A-T Audit: 220+ Markers That Measure Experience, Expertise, Authority, and Trust</h3>
-            <p>The answer is an E-E-A-T audit. If you’re unfamiliar with E-E-A-T (Experience, Expertise, Authoritativeness, and Trust),...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('refscomblogeeataudit', this)">Mark Read</button>
-                <a href='https://ahrefs.com/blog/eeat-audit/' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
+        <div class='card ' id='rustedaccessforcyber'>
+            <button class='fav-btn' onclick="toggleFav('rustedaccessforcyber', this)">☆</button>
+            <a href='https://openai.com/index/trusted-access-for-cyber' target='_blank' onclick="toggleRead('rustedaccessforcyber')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-05</span>
+                    </div>
+                    <h3>Introducing Trusted Access for Cyber</h3>
+                    <p>OpenAI introduces Trusted Access for Cyber, a trust-based framework that expands access to frontier ...</p>
+                </div>
+            </a>
         </div>
         
-        <div class='card' id='commarketingaeoaudit' data-ts='1770724802'>
-            
-            <div class='card-meta'>
-                <span class='source-tag'>HubSpot Marketing</span>
-                <span class='date'>2026-02-10</span>
-            </div>
-            <h3>AI engine optimization audit: How to audit your content for AI search engines</h3>
-            <p>An AI engine optimization audit evaluates brand visibility, accuracy, and citations in AI-powered search engines. It hig...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('commarketingaeoaudit', this)">Mark Read</button>
-                <a href='https://blog.hubspot.com/marketing/aeo-audit' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
+        <div class='card ' id='02discovercoreupdate'>
+            <button class='fav-btn' onclick="toggleFav('02discovercoreupdate', this)">☆</button>
+            <a href='https://developers.google.com/search/blog/2026/02/discover-core-update' target='_blank' onclick="toggleRead('02discovercoreupdate')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 Google Search Central</span>
+                        <span>02-05</span>
+                    </div>
+                    <h3>Google's February 2026 Discover Core Update</h3>
+                    <p>Today we've released
+      the February 2026 Discover core update. This is a broad update to our sys...</p>
+                </div>
+            </a>
         </div>
         
-        <div class='card' id='commarketingaeovsseo' data-ts='1770638403'>
-            
-            <div class='card-meta'>
-                <span class='source-tag'>HubSpot Marketing</span>
-                <span class='date'>2026-02-09</span>
-            </div>
-            <h3>Answer engine optimization vs. traditional SEO: What marketers need to know</h3>
-            <p>Understanding answer engine optimization (AEO) vs. traditional SEO has become mission-critical for content managers and ...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('commarketingaeovsseo', this)">Mark Read</button>
-                <a href='https://blog.hubspot.com/marketing/aeo-vs-seo' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
+        <div class='card ' id='ducingopenaifrontier'>
+            <button class='fav-btn' onclick="toggleFav('ducingopenaifrontier', this)">☆</button>
+            <a href='https://openai.com/index/introducing-openai-frontier' target='_blank' onclick="toggleRead('ducingopenaifrontier')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-05</span>
+                    </div>
+                    <h3>Introducing OpenAI Frontier</h3>
+                    <p>OpenAI Frontier is an enterprise platform for building, deploying, and managing AI agents with share...</p>
+                </div>
+            </a>
         </div>
         
-        <div class='card' id='ingchatgpttogenaimil' data-ts='1770634800'>
-            
-            <div class='card-meta'>
-                <span class='source-tag'>OpenAI News</span>
-                <span class='date'>2026-02-09</span>
-            </div>
-            <h3>Bringing ChatGPT to GenAI.mil</h3>
-            <p>OpenAI for Government announces the deployment of a custom ChatGPT on GenAI.mil, bringing secure, safety-forward AI to U...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('ingchatgpttogenaimil', this)">Mark Read</button>
-                <a href='https://openai.com/index/bringing-chatgpt-to-genaimil' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
+        <div class='card ' id='atinghealthquestions'>
+            <button class='fav-btn' onclick="toggleFav('atinghealthquestions', this)">☆</button>
+            <a href='https://openai.com/index/navigating-health-questions' target='_blank' onclick="toggleRead('atinghealthquestions')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-05</span>
+                    </div>
+                    <h3>Navigating health questions with ChatGPT</h3>
+                    <p>A family shares how ChatGPT helped them prepare for critical cancer treatment decisions for their so...</p>
+                </div>
+            </a>
         </div>
         
-        <div class='card' id='xtestingadsinchatgpt' data-ts='1770634800'>
-            
-            <div class='card-meta'>
-                <span class='source-tag'>OpenAI News</span>
-                <span class='date'>2026-02-09</span>
-            </div>
-            <h3>Testing ads in ChatGPT</h3>
-            <p>OpenAI begins testing ads in ChatGPT to support free access, with clear labeling, answer independence, strong privacy pr...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('xtestingadsinchatgpt', this)">Mark Read</button>
-                <a href='https://openai.com/index/testing-ads-in-chatgpt' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
+        <div class='card ' id='gpt53codexsystemcard'>
+            <button class='fav-btn' onclick="toggleFav('gpt53codexsystemcard', this)">☆</button>
+            <a href='https://openai.com/index/gpt-5-3-codex-system-card' target='_blank' onclick="toggleRead('gpt53codexsystemcard')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-05</span>
+                    </div>
+                    <h3>GPT-5.3-Codex System Card</h3>
+                    <p>GPT‑5.3-Codex is the most capable agentic coding model to date, combining the frontier coding perfor...</p>
+                </div>
+            </a>
         </div>
         
-        <div class='card' id='sforgrowingcompanies' data-ts='1770397165'>
-            
-            <div class='card-meta'>
-                <span class='source-tag'>HubSpot Marketing</span>
-                <span class='date'>2026-02-06</span>
-            </div>
-            <h3>Adaptive marketing: Proven strategies for growing companies</h3>
-            <p>The best marketing isn't chiseled in stone. Apative marketing is alive, responding to new tools, shifting consumer prefe...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('sforgrowingcompanies', this)">Mark Read</button>
-                <a href='https://blog.hubspot.com/marketing/adaptive-marketing-proven-strategies-for-growing-companies' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
+        <div class='card ' id='ntroducinggpt53codex'>
+            <button class='fav-btn' onclick="toggleFav('ntroducinggpt53codex', this)">☆</button>
+            <a href='https://openai.com/index/introducing-gpt-5-3-codex' target='_blank' onclick="toggleRead('ntroducinggpt53codex')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-05</span>
+                    </div>
+                    <h3>Introducing GPT-5.3-Codex</h3>
+                    <p>GPT-5.3-Codex is a Codex-native agent that pairs frontier coding performance with general reasoning ...</p>
+                </div>
+            </a>
         </div>
         
-        <div class='card' id='proachtolocalization' data-ts='1770372000'>
-            
-            <div class='card-meta'>
-                <span class='source-tag'>OpenAI News</span>
-                <span class='date'>2026-02-06</span>
-            </div>
-            <h3>Making AI work for everyone, everywhere: our approach to localization</h3>
-            <p>OpenAI shares its approach to AI localization, showing how globally shared frontier models can be adapted to local langu...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('proachtolocalization', this)">Mark Read</button>
-                <a href='https://openai.com/index/our-approach-to-localization' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
+        <div class='card ' id='ckingthecodexharness'>
+            <button class='fav-btn' onclick="toggleFav('ckingthecodexharness', this)">☆</button>
+            <a href='https://openai.com/index/unlocking-the-codex-harness' target='_blank' onclick="toggleRead('ckingthecodexharness')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-04</span>
+                    </div>
+                    <h3>Unlocking the Codex harness: how we built the App Server</h3>
+                    <p>Learn how to embed the Codex agent using the Codex App Server, a bidirectional JSON-RPC API powering...</p>
+                </div>
+            </a>
         </div>
         
-        <div class='card' id='proteinsynthesiscost' data-ts='1770289200'>
-            
-            <div class='card-meta'>
-                <span class='source-tag'>OpenAI News</span>
-                <span class='date'>2026-02-05</span>
-            </div>
-            <h3>GPT-5 lowers the cost of cell-free protein synthesis</h3>
-            <p>An autonomous lab combining OpenAI’s GPT-5 with Ginkgo Bioworks’ cloud automation cut cell-free protein synthesis costs ...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('proteinsynthesiscost', this)">Mark Read</button>
-                <a href='https://openai.com/index/gpt-5-lowers-protein-synthesis-cost' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
+        <div class='card ' id='comindexvflwolfsburg'>
+            <button class='fav-btn' onclick="toggleFav('comindexvflwolfsburg', this)">☆</button>
+            <a href='https://openai.com/index/vfl-wolfsburg' target='_blank' onclick="toggleRead('comindexvflwolfsburg')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-04</span>
+                    </div>
+                    <h3>VfL Wolfsburg turns ChatGPT into a club-wide capability</h3>
+                    <p>By focusing on people, not pilots, the Bundesliga club is scaling efficiency, creativity, and knowle...</p>
+                </div>
+            </a>
         </div>
         
-        <div class='card' id='customprompttracking' data-ts='1770286053'>
+        <div class='card type-video' id='comwatchvUC67EY4U744'>
+            <button class='fav-btn' onclick="toggleFav('comwatchvUC67EY4U744', this)">☆</button>
+            <a href='https://www.youtube.com/watch?v=UC67EY4U744' target='_blank' onclick="toggleRead('comwatchvUC67EY4U744')" style="text-decoration:none; color:inherit;">
+                
+                <div style="position:relative;">
+                    <img src="https://i2.ytimg.com/vi/UC67EY4U744/hqdefault.jpg" class="video-thumb" loading="lazy">
+                    <div class="play-icon">▶</div>
+                </div>
             
-            <div class='card-meta'>
-                <span class='source-tag'>Ahrefs Blog</span>
-                <span class='date'>2026-02-05</span>
-            </div>
-            <h3>How to Choose the Best Prompts to Monitor Your AI Search Visibility</h3>
-            <p>After all, conversing with AI is unlike how we would traditionally search, since requests can be far more detailed, or o...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('customprompttracking', this)">Mark Read</button>
-                <a href='https://ahrefs.com/blog/custom-prompt-tracking/' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📺 Google Search Central</span>
+                        <span>02-03</span>
+                    </div>
+                    <h3>Crawling Challenges: What the 2025 Year-End Report Tells Us.</h3>
+                    <p>​Join Martin and Gary as they dive into Search Off the Record's Episode 103, unpacking the 2025 Year...</p>
+                </div>
+            </a>
         </div>
         
+        <div class='card ' id='exsorafeedphilosophy'>
+            <button class='fav-btn' onclick="toggleFav('exsorafeedphilosophy', this)">☆</button>
+            <a href='https://openai.com/index/sora-feed-philosophy' target='_blank' onclick="toggleRead('exsorafeedphilosophy')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-03</span>
+                    </div>
+                    <h3>The Sora feed philosophy</h3>
+                    <p>Discover the Sora feed philosophy—built to spark creativity, foster connections, and keep experience...</p>
+                </div>
+            </a>
+        </div>
+        
+        <div class='card ' id='snowflakepartnership'>
+            <button class='fav-btn' onclick="toggleFav('snowflakepartnership', this)">☆</button>
+            <a href='https://openai.com/index/snowflake-partnership' target='_blank' onclick="toggleRead('snowflakepartnership')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-02</span>
+                    </div>
+                    <h3>Snowflake and OpenAI partner to bring frontier intelligence to enterprise data</h3>
+                    <p>OpenAI and Snowflake partner in a $200M agreement to bring frontier intelligence into enterprise dat...</p>
+                </div>
+            </a>
+        </div>
+        
+        <div class='card ' id='troducingthecodexapp'>
+            <button class='fav-btn' onclick="toggleFav('troducingthecodexapp', this)">☆</button>
+            <a href='https://openai.com/index/introducing-the-codex-app' target='_blank' onclick="toggleRead('troducingthecodexapp')" style="text-decoration:none; color:inherit;">
+                
+                <div class='card-body'>
+                    <div class='meta'>
+                        <span class='src-badge'>📄 OpenAI News</span>
+                        <span>02-02</span>
+                    </div>
+                    <h3>Introducing the Codex app</h3>
+                    <p>Introducing the Codex app for macOS—a command center for AI coding and software development with mul...</p>
+                </div>
+            </a>
+        </div>
+        
+                </div>
             </div>
         </div>
         
     <script>
-        // 本地存储：标记已读和收藏
-        let db = JSON.parse(localStorage.getItem('seo_dashboard_v5') || '{"read":[], "fav":[]}');
+        let db = JSON.parse(localStorage.getItem('seo_v7') || '{"read":[], "fav":[]}');
 
-        function toggleRead(id, btn) {
-            if (!db.read.includes(id)) {
+        function toggleRead(id) {
+            if(!db.read.includes(id)) {
                 db.read.push(id);
                 document.getElementById(id).classList.add('is-read');
-                btn.innerText = '已读';
+                save();
             }
+        }
+        
+        function toggleFav(id, btn) {
+            event.stopPropagation(); // 防止触发阅读
+            if(db.fav.includes(id)) {
+                db.fav = db.fav.filter(x => x !== id);
+                btn.classList.remove('active');
+                btn.innerHTML = '☆';
+            } else {
+                db.fav.push(id);
+                btn.classList.add('active');
+                btn.innerHTML = '★';
+            }
+            // 更新样式
+            const card = document.getElementById(id);
+            db.fav.includes(id) ? card.classList.add('is-fav') : card.classList.remove('is-fav');
             save();
         }
 
-        function save() { localStorage.setItem('seo_dashboard_v5', JSON.stringify(db)); }
+        function save() { localStorage.setItem('seo_v7', JSON.stringify(db)); }
+        
+        function filter(type) {
+            document.querySelectorAll('.card').forEach(c => {
+                c.classList.remove('hidden');
+                if(type === 'fav' && !c.classList.contains('is-fav')) c.classList.add('hidden');
+                if(type === 'video' && !c.classList.contains('type-video')) c.classList.add('hidden');
+            });
+            // 菜单高亮逻辑略
+        }
 
-        // 页面加载时应用状态
         window.onload = () => {
-            db.read.forEach(id => {
-                const card = document.getElementById(id);
-                if(card) {
-                    card.classList.add('is-read');
-                    const btn = card.querySelector('.btn-read');
-                    if(btn) btn.innerText = '已读';
+            db.read.forEach(id => document.getElementById(id)?.classList.add('is-read'));
+            db.fav.forEach(id => {
+                const c = document.getElementById(id);
+                if(c) {
+                    c.classList.add('is-fav');
+                    c.querySelector('.fav-btn').classList.add('active');
+                    c.querySelector('.fav-btn').innerHTML = '★';
                 }
             });
-            
-            // 简单的 Tab 切换逻辑
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    const days = parseInt(e.target.dataset.days);
-                    const now = Math.floor(Date.now() / 1000);
-                    
-                    document.querySelectorAll('.card').forEach(card => {
-                        const ts = parseInt(card.dataset.ts);
-                        if ((now - ts) > (days * 86400)) {
-                            card.style.display = 'none';
-                        } else {
-                            card.style.display = 'flex';
-                        }
-                    });
-                });
-            });
-        };
+        }
     </script>
     
     </body>
