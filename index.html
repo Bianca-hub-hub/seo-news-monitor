@@ -1,77 +1,682 @@
 
-    <html><head><meta charset='utf-8'><title>SEO 情报台</title>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head><meta charset="utf-8"><title>SEO Intelligence</title>
     <style>
-        :root { --primary: #1a73e8; --bg: #f1f3f4; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; color: #202124; line-height: 1.5; }
-        .main { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+        :root { --primary: #1a73e8; --bg: #f8f9fa; --text: #202124; --fav: #fbbc04; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .nav-header { position: sticky; top: 0; background: #fff; z-index: 100; padding: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 12px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        /* 顶部情报快讯样式 */
-        .summary-box { background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #dadce0; margin-bottom: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .summary-box h2 { margin-top: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; color: #d93025; }
-        .summary-list { list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto; }
-        .summary-list li { padding: 10px 0; border-bottom: 1px solid #f1f3f4; display: flex; align-items: baseline; gap: 12px; font-size: 0.9rem; }
-        .s-date { color: #70757a; font-family: monospace; white-space: nowrap; }
-        .s-tag { background: #f8f9fa; border: 1px solid #dadce0; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; color: #5f6368; font-weight: bold; white-space: nowrap; }
-        .s-title { color: #1a73e8; text-decoration: none; font-weight: 500; }
-        .s-title:hover { text-decoration: underline; }
+        .section-title { border-left: 6px solid var(--primary); padding-left: 15px; margin: 40px 0 20px; font-size: 1.4rem; }
+        
+        /* SUMMARY LIST */
+        .summary-box { background: #fff; border: 1px solid #dadce0; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .brief-item { display: flex; gap: 15px; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 0.9rem; }
+        
+        /* CARDS */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+        .card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #dadce0; position: relative; transition: 0.3s; }
+        .card.is-read { opacity: 0.5; order: 999; filter: grayscale(1); }
+        .card.is-fav { border: 2px solid var(--fav); }
+        
+        .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
+        .action-btn { cursor: pointer; border: 1px solid #ddd; background: #fff; padding: 5px 8px; border-radius: 6px; font-size: 0.8rem; }
+        .action-btn:hover { background: #f1f3f4; }
+        .btn-read.active { background: #34a853; color: white; }
+        .btn-fav.active { background: var(--fav); color: white; }
 
-        /* 卡片筛选器样式 */
-        .filter-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-        .tabs { display: flex; gap: 8px; background: #e8eaed; padding: 4px; border-radius: 8px; }
-        .tab { border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #5f6368; font-weight: 500; }
-        .tab.active { background: #fff; color: var(--primary); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-
-        /* 卡片网格 */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #dadce0; display: flex; flex-direction: column; transition: 0.2s; }
-        .card:hover { border-color: var(--primary); transform: translateY(-2px); }
-        .tag { font-size: 0.75rem; color: var(--primary); font-weight: bold; margin-bottom: 10px; }
-        h3 { font-size: 1.1rem; margin: 0 0 12px; line-height: 1.4; color: #1c1e21; height: 3em; overflow: hidden; }
-        p { font-size: 0.9rem; color: #5f6368; flex-grow: 1; margin-bottom: 20px; }
-        .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #9aa0a6; border-top: 1px solid #f1f3f4; padding-top: 15px; }
-        .card-footer a { color: var(--primary); text-decoration: none; font-weight: bold; }
-        .hidden { display: none; }
+        .tag { font-size: 0.7rem; font-weight: bold; color: var(--primary); background: #e8f0fe; padding: 3px 8px; border-radius: 4px; margin-bottom: 10px; display: inline-block; }
+        h3 { font-size: 1.1rem; margin: 10px 0; line-height: 1.4; padding-right: 60px; }
+        .meta { font-size: 0.8rem; color: #70757a; margin-top: 15px; display: flex; justify-content: space-between; }
+        
+        #favorites-section { background: #fffef0; padding: 20px; border-radius: 12px; border: 2px dashed var(--fav); margin-bottom: 40px; display: none; }
+        .hidden { display: none !important; }
     </style>
     </head>
     <body>
-        <div class="main">
-            <header style="margin-bottom: 40px;">
-                <h1>🚀 SEO & AI 深度监控站</h1>
-                <p style="color:#5f6368;">全量同步过去 7 天所有专家动态，无一遗漏</p>
-            </header>
-
-            <section class="summary-box">
-                <h2>📢 过去 7 天情报一览 (12 条)</h2>
-                <ul class="summary-list">
-                    <li><span class='s-date'>2026-02-11</span> <span class='s-tag'>OpenAI News</span> <a href='https://openai.com/index/harness-engineering' target='_blank' class='s-title'>Harness engineering: leveraging Codex in an agent-first world</a></li><li><span class='s-date'>2026-02-09</span> <span class='s-tag'>OpenAI News</span> <a href='https://openai.com/index/bringing-chatgpt-to-genaimil' target='_blank' class='s-title'>Bringing ChatGPT to GenAI.mil</a></li><li><span class='s-date'>2026-02-09</span> <span class='s-tag'>OpenAI News</span> <a href='https://openai.com/index/testing-ads-in-chatgpt' target='_blank' class='s-title'>Testing ads in ChatGPT</a></li><li><span class='s-date'>2026-02-06</span> <span class='s-tag'>OpenAI News</span> <a href='https://openai.com/index/our-approach-to-localization' target='_blank' class='s-title'>Making AI work for everyone, everywhere: our approach to localization</a></li><li><span class='s-date'>2026-02-05</span> <span class='s-tag'>OpenAI News</span> <a href='https://openai.com/index/gpt-5-lowers-protein-synthesis-cost' target='_blank' class='s-title'>GPT-5 lowers the cost of cell-free protein synthesis</a></li><li><span class='s-date'>2026-02-05</span> <span class='s-tag'>OpenAI News</span> <a href='https://openai.com/index/trusted-access-for-cyber' target='_blank' class='s-title'>Introducing Trusted Access for Cyber</a></li><li><span class='s-date'>2026-02-05</span> <span class='s-tag'>Google Search Blog</span> <a href='https://developers.google.com/search/blog/2026/02/discover-core-update' target='_blank' class='s-title'>Google's February 2026 Discover Core Update</a></li><li><span class='s-date'>2026-02-05</span> <span class='s-tag'>OpenAI News</span> <a href='https://openai.com/index/introducing-openai-frontier' target='_blank' class='s-title'>Introducing OpenAI Frontier</a></li><li><span class='s-date'>2026-02-05</span> <span class='s-tag'>OpenAI News</span> <a href='https://openai.com/index/navigating-health-questions' target='_blank' class='s-title'>Navigating health questions with ChatGPT</a></li><li><span class='s-date'>2026-02-05</span> <span class='s-tag'>OpenAI News</span> <a href='https://openai.com/index/gpt-5-3-codex-system-card' target='_blank' class='s-title'>GPT-5.3-Codex System Card</a></li><li><span class='s-date'>2026-02-05</span> <span class='s-tag'>OpenAI News</span> <a href='https://openai.com/index/introducing-gpt-5-3-codex' target='_blank' class='s-title'>Introducing GPT-5.3-Codex</a></li><li><span class='s-date'>2026-02-04</span> <span class='s-tag'>OpenAI News</span> <a href='https://openai.com/index/unlocking-the-codex-harness' target='_blank' class='s-title'>Unlocking the Codex harness: how we built the App Server</a></li>
-                </ul>
-            </section>
-
-            <div class="filter-bar">
-                <h2 style="font-size:1.2rem; margin:0;">🔍 深度阅读摘要</h2>
-                <div class="tabs">
-                    <button class="tab active" onclick="filterContent(7, this)">近7天</button>
-                    <button class="tab" onclick="filterContent(3, this)">近3天</button>
-                    <button class="tab" onclick="filterContent(1, this)">今日</button>
-                </div>
+        <div class="container">
+            <div class="nav-header">
+                <h1>SEO INTELLIGENCE</h1>
+                <div><button onclick="localStorage.clear(); location.reload();" class="action-btn">Reset All</button></div>
             </div>
             
-            <div class="grid"><div class='card' data-ts='1770800400'><div class='tag'>OpenAI News</div><h3>Harness engineering: leveraging Codex in an agent-first world</h3><p>By Ryan Lopopolo, Member of the Technical Staff</p><div class='card-footer'><span>📅 2026-02-11</span><a href='https://openai.com/index/harness-engineering' target='_blank'>详情 →</a></div></div><div class='card' data-ts='1770634800'><div class='tag'>OpenAI News</div><h3>Bringing ChatGPT to GenAI.mil</h3><p>OpenAI for Government announces the deployment of a custom ChatGPT on GenAI.mil, bringing secure, safety-forward AI to U...</p><div class='card-footer'><span>📅 2026-02-09</span><a href='https://openai.com/index/bringing-chatgpt-to-genaimil' target='_blank'>详情 →</a></div></div><div class='card' data-ts='1770634800'><div class='tag'>OpenAI News</div><h3>Testing ads in ChatGPT</h3><p>OpenAI begins testing ads in ChatGPT to support free access, with clear labeling, answer independence, strong privacy pr...</p><div class='card-footer'><span>📅 2026-02-09</span><a href='https://openai.com/index/testing-ads-in-chatgpt' target='_blank'>详情 →</a></div></div><div class='card' data-ts='1770372000'><div class='tag'>OpenAI News</div><h3>Making AI work for everyone, everywhere: our approach to localization</h3><p>OpenAI shares its approach to AI localization, showing how globally shared frontier models can be adapted to local langu...</p><div class='card-footer'><span>📅 2026-02-06</span><a href='https://openai.com/index/our-approach-to-localization' target='_blank'>详情 →</a></div></div><div class='card' data-ts='1770289200'><div class='tag'>OpenAI News</div><h3>GPT-5 lowers the cost of cell-free protein synthesis</h3><p>An autonomous lab combining OpenAI’s GPT-5 with Ginkgo Bioworks’ cloud automation cut cell-free protein synthesis costs ...</p><div class='card-footer'><span>📅 2026-02-05</span><a href='https://openai.com/index/gpt-5-lowers-protein-synthesis-cost' target='_blank'>详情 →</a></div></div><div class='card' data-ts='1770285600'><div class='tag'>OpenAI News</div><h3>Introducing Trusted Access for Cyber</h3><p>OpenAI introduces Trusted Access for Cyber, a trust-based framework that expands access to frontier cyber capabilities w...</p><div class='card-footer'><span>📅 2026-02-05</span><a href='https://openai.com/index/trusted-access-for-cyber' target='_blank'>详情 →</a></div></div><div class='card' data-ts='1770271200'><div class='tag'>Google Search Blog</div><h3>Google's February 2026 Discover Core Update</h3><p>Today we've released
-      the February 2026 Discover core update. This is a broad update to our systems that surface
-  ...</p><div class='card-footer'><span>📅 2026-02-05</span><a href='https://developers.google.com/search/blog/2026/02/discover-core-update' target='_blank'>详情 →</a></div></div><div class='card' data-ts='1770271200'><div class='tag'>OpenAI News</div><h3>Introducing OpenAI Frontier</h3><p>OpenAI Frontier is an enterprise platform for building, deploying, and managing AI agents with shared context, onboardin...</p><div class='card-footer'><span>📅 2026-02-05</span><a href='https://openai.com/index/introducing-openai-frontier' target='_blank'>详情 →</a></div></div><div class='card' data-ts='1770249600'><div class='tag'>OpenAI News</div><h3>Navigating health questions with ChatGPT</h3><p>A family shares how ChatGPT helped them prepare for critical cancer treatment decisions for their son alongside expert g...</p><div class='card-footer'><span>📅 2026-02-05</span><a href='https://openai.com/index/navigating-health-questions' target='_blank'>详情 →</a></div></div><div class='card' data-ts='1770249600'><div class='tag'>OpenAI News</div><h3>GPT-5.3-Codex System Card</h3><p>GPT‑5.3-Codex is the most capable agentic coding model to date, combining the frontier coding performance of GPT‑5.2-Cod...</p><div class='card-footer'><span>📅 2026-02-05</span><a href='https://openai.com/index/gpt-5-3-codex-system-card' target='_blank'>详情 →</a></div></div><div class='card' data-ts='1770249600'><div class='tag'>OpenAI News</div><h3>Introducing GPT-5.3-Codex</h3><p>GPT-5.3-Codex is a Codex-native agent that pairs frontier coding performance with general reasoning to support long-hori...</p><div class='card-footer'><span>📅 2026-02-05</span><a href='https://openai.com/index/introducing-gpt-5-3-codex' target='_blank'>详情 →</a></div></div><div class='card' data-ts='1770210000'><div class='tag'>OpenAI News</div><h3>Unlocking the Codex harness: how we built the App Server</h3><p>Learn how to embed the Codex agent using the Codex App Server, a bidirectional JSON-RPC API powering streaming progress,...</p><div class='card-footer'><span>📅 2026-02-04</span><a href='https://openai.com/index/unlocking-the-codex-harness' target='_blank'>详情 →</a></div></div></div>
+            <div id="favorites-section">
+                <h2 class="section-title" style="border-color:var(--fav)">★ FAVORITES</h2>
+                <div class="grid"></div>
+            </div>
+
+            <h2 class='section-title'>SEO TOOLS & GIANTS</h2><div class='summary-box'><h4>Quick Summary</h4><div class='brief-item'><span>02-11</span><b>[Search Engine Journal]</b><a href='https://www.searchenginejournal.com/increase-conversion-rate-google-ads/97917/' target='_blank'>15 Fixes To Improve Low Conversion Rates In Google Ads via @sejournal, @brookeosmundson</a></div><div class='brief-item'><span>02-11</span><b>[Search Engine Journal]</b><a href='https://www.searchenginejournal.com/what-the-data-shows-about-local-rankings/565920/' target='_blank'>What The Data Shows About Local Rankings In 2026 [Webinar] via @sejournal, @hethr_campbell</a></div><div class='brief-item'><span>02-11</span><b>[Semrush Blog]</b><a href='https://www.semrush.com/blog/social-media-calendar/' target='_blank'>Social Media Calendar: How to Create One in 2026</a></div><div class='brief-item'><span>02-11</span><b>[Search Engine Journal]</b><a href='https://www.searchenginejournal.com/googles-ads-chief-details-ucp-expansion-new-ai-mode-ads/567007/' target='_blank'>Google’s Ads Chief Details UCP Expansion, New AI Mode Ads via @sejournal, @MattGSouthern</a></div><div class='brief-item'><span>02-11</span><b>[Search Engine Journal]</b><a href='https://www.searchenginejournal.com/hidden-http-page-can-cause-site-name-problems-in-google/567011/' target='_blank'>Hidden HTTP Page Can Cause Site Name Problems In Google via @sejournal, @MattGSouthern</a></div><div class='brief-item'><span>02-11</span><b>[Search Engine Journal]</b><a href='https://www.searchenginejournal.com/from-article-to-short-form-video-that-holds-attention/565238/' target='_blank'>From Article to Short-Form Video That Holds Attention via @sejournal, @MattGSouthern</a></div><div class='brief-item'><span>02-11</span><b>[Ahrefs Blog]</b><a href='https://ahrefs.com/blog/chatgpt-has-12-percent-of-googles-search-volume/' target='_blank'>ChatGPT Has 12% of Google’s Search Volume but Google Sends 190x More Traffic to Websites</a></div><div class='brief-item'><span>02-11</span><b>[Ahrefs Blog]</b><a href='https://ahrefs.com/blog/gsc-anonymized-queries/' target='_blank'>Anonymized Queries Make Up Nearly Half of Google Search Console Traffic</a></div><div class='brief-item'><span>02-11</span><b>[Search Engine Journal]</b><a href='https://www.searchenginejournal.com/the-halo-effect-your-paid-media-went-offline-can-you-survive-without-it/565464/' target='_blank'>The Halo Effect: Your Paid Media Went Offline, Can You Survive Without It? via @sejournal, @jonkagan</a></div><div class='brief-item'><span>02-11</span><b>[Semrush Blog]</b><a href='https://www.semrush.com/blog/ai-visibility-tracking-for-small-teams/' target='_blank'>AI Visibility Tracking for Small Teams: A Practical Guide</a></div></div><div class='grid'>
+            <div class='card' id='onrategoogleads97917' data-ts='1770850899'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('onrategoogleads97917')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('onrategoogleads97917')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>15 Fixes To Improve Low Conversion Rates In Google Ads via @sejournal, @brookeosmundson</h3>
+                <p style='font-size:0.9rem; color:#555;'>Get more value from your Google Ads spend by tightening fundamentals that directly lift conversion performance.
+The post 15 Fixes To Improve Low Conve...</p>
+                <div class='meta'>
+                    <span>02-11</span>
+                    <a href='https://www.searchenginejournal.com/increase-conversion-rate-google-ads/97917/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='tlocalrankings565920' data-ts='1770841827'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('tlocalrankings565920')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('tlocalrankings565920')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>What The Data Shows About Local Rankings In 2026 [Webinar] via @sejournal, @hethr_campbell</h3>
+                <p style='font-size:0.9rem; color:#555;'>Enhance your understanding of local rankings with reputation signals. Join experts for a deep dive into local SEO strategies.
+The post What The Data S...</p>
+                <div class='meta'>
+                    <span>02-11</span>
+                    <a href='https://www.searchenginejournal.com/what-the-data-shows-about-local-rankings/565920/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='gsocialmediacalendar' data-ts='1770827760'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('gsocialmediacalendar')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('gsocialmediacalendar')">READ</button>
+                </div>
+                <div class='tag'>Semrush Blog</div>
+                <h3>Social Media Calendar: How to Create One in 2026</h3>
+                <p style='font-size:0.9rem; color:#555;'>Learn what a social media calendar is, its key components, and how to create one for 2026.</p>
+                <div class='meta'>
+                    <span>02-11</span>
+                    <a href='https://www.semrush.com/blog/social-media-calendar/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='onnewaimodeads567007' data-ts='1770825603'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('onnewaimodeads567007')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('onnewaimodeads567007')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>Google’s Ads Chief Details UCP Expansion, New AI Mode Ads via @sejournal, @MattGSouthern</h3>
+                <p style='font-size:0.9rem; color:#555;'>Google\'s VP of Ads & Commerce published her annual letter previewing agentic commerce updates, AI Mode ad expansion, and creator-brand matching tools ...</p>
+                <div class='meta'>
+                    <span>02-11</span>
+                    <a href='https://www.searchenginejournal.com/googles-ads-chief-details-ucp-expansion-new-ai-mode-ads/567007/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='oblemsingoogle567011' data-ts='1770822684'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('oblemsingoogle567011')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('oblemsingoogle567011')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>Hidden HTTP Page Can Cause Site Name Problems In Google via @sejournal, @MattGSouthern</h3>
+                <p style='font-size:0.9rem; color:#555;'>Google\'s John Mueller explains how a leftover HTTP homepage invisible to Chrome users can cause site-name and favicon problems in search results. 
+The...</p>
+                <div class='meta'>
+                    <span>02-11</span>
+                    <a href='https://www.searchenginejournal.com/hidden-http-page-can-cause-site-name-problems-in-google/567011/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='holdsattention565238' data-ts='1770821148'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('holdsattention565238')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('holdsattention565238')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>From Article to Short-Form Video That Holds Attention via @sejournal, @MattGSouthern</h3>
+                <p style='font-size:0.9rem; color:#555;'>Effective article-to-video workflows prioritize what to cut, what to keep, and how to structure 150 words that actually hold attention.
+The post From ...</p>
+                <div class='meta'>
+                    <span>02-11</span>
+                    <a href='https://www.searchenginejournal.com/from-article-to-short-form-video-that-holds-attention/565238/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='fgooglessearchvolume' data-ts='1770820574'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('fgooglessearchvolume')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('fgooglessearchvolume')">READ</button>
+                </div>
+                <div class='tag'>Ahrefs Blog</div>
+                <h3>ChatGPT Has 12% of Google’s Search Volume but Google Sends 190x More Traffic to Websites</h3>
+                <p style='font-size:0.9rem; color:#555;'>While ChatGPT has nearly a fifth of Google’s query volume, people use the platforms in different ways. I wanted to see how ChatGPT compared to Google,...</p>
+                <div class='meta'>
+                    <span>02-11</span>
+                    <a href='https://ahrefs.com/blog/chatgpt-has-12-percent-of-googles-search-volume/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='gscanonymizedqueries' data-ts='1770819273'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('gscanonymizedqueries')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('gscanonymizedqueries')">READ</button>
+                </div>
+                <div class='tag'>Ahrefs Blog</div>
+                <h3>Anonymized Queries Make Up Nearly Half of Google Search Console Traffic</h3>
+                <p style='font-size:0.9rem; color:#555;'>This number is slightly higher than our 2022 study on anonymized queries. However, that’s the average. Some websites in our research saw dramatically ...</p>
+                <div class='meta'>
+                    <span>02-11</span>
+                    <a href='https://ahrefs.com/blog/gsc-anonymized-queries/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='rvivewithoutit565464' data-ts='1770813004'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('rvivewithoutit565464')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('rvivewithoutit565464')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>The Halo Effect: Your Paid Media Went Offline, Can You Survive Without It? via @sejournal, @jonkagan</h3>
+                <p style='font-size:0.9rem; color:#555;'>This paid media holdout study explains why organic gains mask deeper declines in traffic, orders, and brand-driven demand.
+The post The Halo Effect: Y...</p>
+                <div class='meta'>
+                    <span>02-11</span>
+                    <a href='https://www.searchenginejournal.com/the-halo-effect-your-paid-media-went-offline-can-you-survive-without-it/565464/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='rackingforsmallteams' data-ts='1770804480'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('rackingforsmallteams')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('rackingforsmallteams')">READ</button>
+                </div>
+                <div class='tag'>Semrush Blog</div>
+                <h3>AI Visibility Tracking for Small Teams: A Practical Guide</h3>
+                <p style='font-size:0.9rem; color:#555;'>Learn how small teams can track AI visibility. Discover affordable tools they can use and key metrics they should focus on.</p>
+                <div class='meta'>
+                    <span>02-11</span>
+                    <a href='https://www.semrush.com/blog/ai-visibility-tracking-for-small-teams/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='bleinaisearchresults' data-ts='1770804240'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('bleinaisearchresults')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('bleinaisearchresults')">READ</button>
+                </div>
+                <div class='tag'>Semrush Blog</div>
+                <h3>Is Your Brand Visible in AI Search Results? Here’s How to Find Out</h3>
+                <p style='font-size:0.9rem; color:#555;'>Learn how to check if your brand appears in AI results, spot outdated info, and which free tools help monitor your visibility.</p>
+                <div class='meta'>
+                    <span>02-11</span>
+                    <a href='https://www.semrush.com/blog/is-your-brand-visible-in-ai-search-results/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='refscomblogeeataudit' data-ts='1770759344'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('refscomblogeeataudit')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('refscomblogeeataudit')">READ</button>
+                </div>
+                <div class='tag'>Ahrefs Blog</div>
+                <h3>E-E-A-T Audit: 220+ Markers That Measure Experience, Expertise, Authority, and Trust</h3>
+                <p style='font-size:0.9rem; color:#555;'>The answer is an E-E-A-T audit. If you’re unfamiliar with E-E-A-T (Experience, Expertise, Authoritativeness, and Trust), start with our guide to E-E-A...</p>
+                <div class='meta'>
+                    <span>02-10</span>
+                    <a href='https://ahrefs.com/blog/eeat-audit/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='ogwhatismcpconnector' data-ts='1770757800'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('ogwhatismcpconnector')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('ogwhatismcpconnector')">READ</button>
+                </div>
+                <div class='tag'>Semrush Blog</div>
+                <h3>How Semrush MCP Connects Your AI Tools to Live Marketing Data</h3>
+                <p style='font-size:0.9rem; color:#555;'>Learn how Semrush MCP connects AI tools to live SEO and competitive data so marketing, SEO, and product teams can query the same source without manual...</p>
+                <div class='meta'>
+                    <span>02-10</span>
+                    <a href='https://www.semrush.com/blog/what-is-mcp-connector/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='nredditwebinar566936' data-ts='1770753559'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('nredditwebinar566936')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('nredditwebinar566936')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>Make 2026 The Year Your Business Thrives On Reddit  [Webinar] via @sejournal, @hethr_campbell</h3>
+                <p style='font-size:0.9rem; color:#555;'>Yes, yes we all know customer behavior is changing and Reddit conversations showing up in AI search is a big part of that shift. What are you doing ab...</p>
+                <div class='meta'>
+                    <span>02-10</span>
+                    <a href='https://www.searchenginejournal.com/make-2026-the-year-your-business-thrives-on-reddit-webinar/566936/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='prompttracking566878' data-ts='1770733848'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('prompttracking566878')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('prompttracking566878')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>Synthetic Personas For Better Prompt Tracking via @sejournal, @Kevin_Indig</h3>
+                <p style='font-size:0.9rem; color:#555;'>New research shows synthetic personas can improve AI prompt tracking accuracy while cutting cost and research time dramatically.
+The post Synthetic Pe...</p>
+                <div class='meta'>
+                    <span>02-10</span>
+                    <a href='https://www.searchenginejournal.com/synthetic-personas-for-better-prompt-tracking/566878/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='rgovernmentids566905' data-ts='1770732042'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('rgovernmentids566905')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('rgovernmentids566905')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>Google Can Now Monitor Search For Your Government IDs via @sejournal, @MattGSouthern</h3>
+                <p style='font-size:0.9rem; color:#555;'>Google\'s Results about you tool now monitors Search results for government-issued IDs like passports, driver\'s licenses, and Social Security numbers.
+...</p>
+                <div class='meta'>
+                    <span>02-10</span>
+                    <a href='https://www.searchenginejournal.com/google-can-now-monitor-search-for-your-government-ids/566905/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='oreachplatform562726' data-ts='1770730230'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('oreachplatform562726')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('oreachplatform562726')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>Should I Optimize My Content Differently For Each Platform? – Ask An SEO via @sejournal, @rollerblader</h3>
+                <p style='font-size:0.9rem; color:#555;'>This Ask an SEO explains how search, social platforms, and on-site content demand different optimization approaches without fragmenting strategy.
+The ...</p>
+                <div class='meta'>
+                    <span>02-10</span>
+                    <a href='https://www.searchenginejournal.com/ask-an-seo-should-i-optimize-my-content-differently-for-each-platform/562726/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='llimitisenough566881' data-ts='1770716490'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('llimitisenough566881')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('llimitisenough566881')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>New Data Shows Googlebot’s 2 MB Crawl Limit Is Enough via @sejournal, @martinibuster</h3>
+                <p style='font-size:0.9rem; color:#555;'>New data shows that most web pages fall well below Googlebot\'s two-megabyte crawl limit. 
+The post New Data Shows Googlebot&#8217;s 2 MB Crawl Limit I...</p>
+                <div class='meta'>
+                    <span>02-10</span>
+                    <a href='https://www.searchenginejournal.com/new-data-shows-googlebots-2-mb-crawl-limit-is-enough/566881/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='rushcomblogblogideas' data-ts='1770715440'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('rushcomblogblogideas')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('rushcomblogblogideas')">READ</button>
+                </div>
+                <div class='tag'>Semrush Blog</div>
+                <h3>75 Blog Ideas for Every Industry + How to Find More</h3>
+                <p style='font-size:0.9rem; color:#555;'>Get inspiration from our blog ideas related to thought leadership, personal experiences, and more.</p>
+                <div class='meta'>
+                    <span>02-10</span>
+                    <a href='https://www.semrush.com/blog/blog-ideas/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='erformancedata566874' data-ts='1770680425'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('erformancedata566874')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('erformancedata566874')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>Bing Webmaster Tools Adds AI Citation Performance Data via @sejournal, @MattGSouthern</h3>
+                <p style='font-size:0.9rem; color:#555;'>Bing Webmaster Tools now shows publishers how often their content is cited in Copilot and AI-generated answers, with page-level data and grounding que...</p>
+                <div class='meta'>
+                    <span>02-09</span>
+                    <a href='https://www.searchenginejournal.com/bing-webmaster-tools-adds-ai-citation-performance-data/566874/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='freeandgousers566869' data-ts='1770672984'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('freeandgousers566869')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('freeandgousers566869')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>OpenAI Begins Testing Ads In ChatGPT For Free And Go Users via @sejournal, @MattGSouthern</h3>
+                <p style='font-size:0.9rem; color:#555;'>OpenAI is testing ads in ChatGPT for free and Go tiers in the U.S. Ads appear below responses, labeled as sponsored. Paid tiers remain ad-free. 
+The p...</p>
+                <div class='meta'>
+                    <span>02-09</span>
+                    <a href='https://www.searchenginejournal.com/openai-begins-testing-ads-in-chatgpt-for-free-and-go-users/566869/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='ndhowtofixthem564769' data-ts='1770642052'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('ndhowtofixthem564769')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('ndhowtofixthem564769')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>Why Your SEO KPIs Are Failing Your Business (And How To Fix Them) via @sejournal, @bngsrc</h3>
+                <p style='font-size:0.9rem; color:#555;'>Break the habit of reporting easy metrics and adopt KPIs that reflect how growth actually happens today.
+The post Why Your SEO KPIs Are Failing Your B...</p>
+                <div class='meta'>
+                    <span>02-09</span>
+                    <a href='https://www.searchenginejournal.com/why-your-seo-kpis-are-failing-your-business-and-how-to-fix-them/564769/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='udgetsarespent561884' data-ts='1770638441'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('udgetsarespent561884')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('udgetsarespent561884')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>PPC Budget Rebalancing: How AI Changes Where Marketing Budgets Are Spent via @sejournal, @LisaRocksSEM</h3>
+                <p style='font-size:0.9rem; color:#555;'>An AI-aligned approach to PPC budget strategy that moves spend toward conversion probability instead of traditional channel-based planning.
+The post P...</p>
+                <div class='meta'>
+                    <span>02-09</span>
+                    <a href='https://www.searchenginejournal.com/ppc-budget-rebalancing-how-ai-changes-where-marketing-budgets-are-spent/561884/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='winbacktraffic566758' data-ts='1770630891'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('winbacktraffic566758')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('winbacktraffic566758')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>7 Insights From Washington Post’s Strategy To Win Back Traffic via @sejournal, @martinibuster</h3>
+                <p style='font-size:0.9rem; color:#555;'>The Washington Post\'s controversial strategy begins with a foundation, then adjusts based on what works.
+The post 7 Insights From Washington Post&#821...</p>
+                <div class='meta'>
+                    <span>02-09</span>
+                    <a href='https://www.searchenginejournal.com/7-insights-from-washington-posts-strategy-to-win-back-traffic/566758/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='creasesolution459726' data-ts='1770606059'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('creasesolution459726')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('creasesolution459726')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>4 Reasons Your Google Ads Clicks Are Down & What You Can Do via @sejournal, @brookeosmundson</h3>
+                <p style='font-size:0.9rem; color:#555;'>Stop guessing when clicks fall and use a structured process to get Google Ads performance back on track.
+The post 4 Reasons Your Google Ads Clicks Are...</p>
+                <div class='meta'>
+                    <span>02-09</span>
+                    <a href='https://www.searchenginejournal.com/click-volume-decrease-solution/459726/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='anagementwithsemrush' data-ts='1770416340'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('anagementwithsemrush')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('anagementwithsemrush')">READ</button>
+                </div>
+                <div class='tag'>Semrush Blog</div>
+                <h3>How to Automate Google Business Profile Management with Semrush</h3>
+                <p style='font-size:0.9rem; color:#555;'>Automate Google Business Profile management with Semrush’s GBP AI Agent. Save time, stay active, and support local visibility.</p>
+                <div class='meta'>
+                    <span>02-06</span>
+                    <a href='https://www.semrush.com/blog/how-to-automate-google-business-profile-management-with-semrush/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='archvisibility566687' data-ts='1770416243'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('archvisibility566687')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('archvisibility566687')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>90 Days. 1 Plan. Improved Local Search Visibility [Webinar] via @sejournal, @hethr_campbell</h3>
+                <p style='font-size:0.9rem; color:#555;'>Learn how to boost visibility for each location in your network. A practical 90 Day Plan can make your brand AI-ready.
+The post 90 Days. 1 Plan. Impro...</p>
+                <div class='meta'>
+                    <span>02-06</span>
+                    <a href='https://www.searchenginejournal.com/90-days-improved-local-search-visibility/566687/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='sidecoreupdate566748' data-ts='1770410103'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('sidecoreupdate566748')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('sidecoreupdate566748')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>Google Revises Discover Guidelines Alongside Core Update via @sejournal, @MattGSouthern</h3>
+                <p style='font-size:0.9rem; color:#555;'>Google updated its "Get on Discover" docs, adding page experience guidance and naming clickbait and sensationalism, alongside the February Discover up...</p>
+                <div class='meta'>
+                    <span>02-06</span>
+                    <a href='https://www.searchenginejournal.com/google-revises-discover-guidelines-alongside-core-update/566748/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='policyseopulse566659' data-ts='1770382689'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('policyseopulse566659')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('policyseopulse566659')">READ</button>
+                </div>
+                <div class='tag'>Search Engine Journal</div>
+                <h3>Discover Core Update, AI Mode Ads & Crawl Policy – SEO Pulse via @sejournal, @MattGSouthern</h3>
+                <p style='font-size:0.9rem; color:#555;'>This week’s SEO Pulse covers ranking volatility inside Discover, expanding AI ad inventory, and growing scrutiny of bot-facing content practices.
+The ...</p>
+                <div class='meta'>
+                    <span>02-06</span>
+                    <a href='https://www.searchenginejournal.com/discover-core-update-ai-mode-ads-crawl-policy-seo-pulse/566659/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='emrushcomblogseotips' data-ts='1770373740'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('emrushcomblogseotips')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('emrushcomblogseotips')">READ</button>
+                </div>
+                <div class='tag'>Semrush Blog</div>
+                <h3>13 SEO Tips to Boost Your Search Visibility</h3>
+                <p style='font-size:0.9rem; color:#555;'>Top SEO tips include targeting the right terms, updating your content, and prioritizing readability.</p>
+                <div class='meta'>
+                    <span>02-06</span>
+                    <a href='https://www.semrush.com/blog/seo-tips/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='ionswhiteboardfriday' data-ts='1770364800'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('ionswhiteboardfriday')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('ionswhiteboardfriday')">READ</button>
+                </div>
+                <div class='tag'>Moz Blog</div>
+                <h3>How to Build AI Citations — Whiteboard Friday</h3>
+                <p style='font-size:0.9rem; color:#555;'>Learn how to build AI citations and rank in ChatGPT and Gemini. Charlie Marchant explains how to research prompts, analyze sources, and use proactive ...</p>
+                <div class='meta'>
+                    <span>02-06</span>
+                    <a href='https://moz.com/blog/how-to-build-ai-citations-whiteboard-friday' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='mblogsitemapexamples' data-ts='1770289140'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('mblogsitemapexamples')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('mblogsitemapexamples')">READ</button>
+                </div>
+                <div class='tag'>Semrush Blog</div>
+                <h3>7 Sitemap Examples: XML, HTML, and Visual Sitemaps</h3>
+                <p style='font-size:0.9rem; color:#555;'>See XML, HTML, and visual sitemap examples from real sites—plus guidance on what to include in yours.</p>
+                <div class='meta'>
+                    <span>02-05</span>
+                    <a href='https://www.semrush.com/blog/sitemap-examples/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='shcomblogaioverviews' data-ts='1770288420'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('shcomblogaioverviews')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('shcomblogaioverviews')">READ</button>
+                </div>
+                <div class='tag'>Semrush Blog</div>
+                <h3>AI Overviews: What Are They & How to Optimize for Them</h3>
+                <p style='font-size:0.9rem; color:#555;'>AI Overviews are AI-generated summaries that appear for some search queries in Google.</p>
+                <div class='meta'>
+                    <span>02-05</span>
+                    <a href='https://www.semrush.com/blog/ai-overviews/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='customprompttracking' data-ts='1770286053'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('customprompttracking')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('customprompttracking')">READ</button>
+                </div>
+                <div class='tag'>Ahrefs Blog</div>
+                <h3>How to Choose the Best Prompts to Monitor Your AI Search Visibility</h3>
+                <p style='font-size:0.9rem; color:#555;'>After all, conversing with AI is unlike how we would traditionally search, since requests can be far more detailed, or occur in the middle of longer c...</p>
+                <div class='meta'>
+                    <span>02-05</span>
+                    <a href='https://ahrefs.com/blog/custom-prompt-tracking/' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        </div><h2 class='section-title'>AI & SEARCH INNOVATION</h2><div class='summary-box'><h4>Quick Summary</h4><div class='brief-item'><span>02-11</span><b>[OpenAI News]</b><a href='https://openai.com/index/harness-engineering' target='_blank'>Harness engineering: leveraging Codex in an agent-first world</a></div><div class='brief-item'><span>02-09</span><b>[OpenAI News]</b><a href='https://openai.com/index/bringing-chatgpt-to-genaimil' target='_blank'>Bringing ChatGPT to GenAI.mil</a></div><div class='brief-item'><span>02-09</span><b>[OpenAI News]</b><a href='https://openai.com/index/testing-ads-in-chatgpt' target='_blank'>Testing ads in ChatGPT</a></div><div class='brief-item'><span>02-06</span><b>[OpenAI News]</b><a href='https://openai.com/index/our-approach-to-localization' target='_blank'>Making AI work for everyone, everywhere: our approach to localization</a></div><div class='brief-item'><span>02-05</span><b>[OpenAI News]</b><a href='https://openai.com/index/gpt-5-lowers-protein-synthesis-cost' target='_blank'>GPT-5 lowers the cost of cell-free protein synthesis</a></div><div class='brief-item'><span>02-05</span><b>[OpenAI News]</b><a href='https://openai.com/index/trusted-access-for-cyber' target='_blank'>Introducing Trusted Access for Cyber</a></div></div><div class='grid'>
+            <div class='card' id='exharnessengineering' data-ts='1770800400'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('exharnessengineering')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('exharnessengineering')">READ</button>
+                </div>
+                <div class='tag'>OpenAI News</div>
+                <h3>Harness engineering: leveraging Codex in an agent-first world</h3>
+                <p style='font-size:0.9rem; color:#555;'>By Ryan Lopopolo, Member of the Technical Staff</p>
+                <div class='meta'>
+                    <span>02-11</span>
+                    <a href='https://openai.com/index/harness-engineering' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='ingchatgpttogenaimil' data-ts='1770634800'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('ingchatgpttogenaimil')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('ingchatgpttogenaimil')">READ</button>
+                </div>
+                <div class='tag'>OpenAI News</div>
+                <h3>Bringing ChatGPT to GenAI.mil</h3>
+                <p style='font-size:0.9rem; color:#555;'>OpenAI for Government announces the deployment of a custom ChatGPT on GenAI.mil, bringing secure, safety-forward AI to U.S. defense teams.</p>
+                <div class='meta'>
+                    <span>02-09</span>
+                    <a href='https://openai.com/index/bringing-chatgpt-to-genaimil' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='xtestingadsinchatgpt' data-ts='1770634800'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('xtestingadsinchatgpt')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('xtestingadsinchatgpt')">READ</button>
+                </div>
+                <div class='tag'>OpenAI News</div>
+                <h3>Testing ads in ChatGPT</h3>
+                <p style='font-size:0.9rem; color:#555;'>OpenAI begins testing ads in ChatGPT to support free access, with clear labeling, answer independence, strong privacy protections, and user control.</p>
+                <div class='meta'>
+                    <span>02-09</span>
+                    <a href='https://openai.com/index/testing-ads-in-chatgpt' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='proachtolocalization' data-ts='1770372000'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('proachtolocalization')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('proachtolocalization')">READ</button>
+                </div>
+                <div class='tag'>OpenAI News</div>
+                <h3>Making AI work for everyone, everywhere: our approach to localization</h3>
+                <p style='font-size:0.9rem; color:#555;'>OpenAI shares its approach to AI localization, showing how globally shared frontier models can be adapted to local languages, laws, and cultures witho...</p>
+                <div class='meta'>
+                    <span>02-06</span>
+                    <a href='https://openai.com/index/our-approach-to-localization' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='proteinsynthesiscost' data-ts='1770289200'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('proteinsynthesiscost')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('proteinsynthesiscost')">READ</button>
+                </div>
+                <div class='tag'>OpenAI News</div>
+                <h3>GPT-5 lowers the cost of cell-free protein synthesis</h3>
+                <p style='font-size:0.9rem; color:#555;'>An autonomous lab combining OpenAI’s GPT-5 with Ginkgo Bioworks’ cloud automation cut cell-free protein synthesis costs by 40% through closed-loop exp...</p>
+                <div class='meta'>
+                    <span>02-05</span>
+                    <a href='https://openai.com/index/gpt-5-lowers-protein-synthesis-cost' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        
+            <div class='card' id='rustedaccessforcyber' data-ts='1770285600'>
+                <div class='card-actions'>
+                    <button class='action-btn btn-fav' onclick="toggleFav('rustedaccessforcyber')">★</button>
+                    <button class='action-btn btn-read' onclick="toggleRead('rustedaccessforcyber')">READ</button>
+                </div>
+                <div class='tag'>OpenAI News</div>
+                <h3>Introducing Trusted Access for Cyber</h3>
+                <p style='font-size:0.9rem; color:#555;'>OpenAI introduces Trusted Access for Cyber, a trust-based framework that expands access to frontier cyber capabilities while strengthening safeguards ...</p>
+                <div class='meta'>
+                    <span>02-05</span>
+                    <a href='https://openai.com/index/trusted-access-for-cyber' target='_blank' style='color:var(--primary); text-decoration:none; font-weight:bold;'>Full Text →</a>
+                </div>
+            </div>
+        </div>
         </div>
         
     <script>
-        function filterContent(days, btn) {
-            const now = Math.floor(Date.now() / 1000);
-            document.querySelectorAll('.card').forEach(c => {
-                const isMatch = (now - parseInt(c.dataset.ts)) <= (days * 86400);
-                c.classList.toggle('hidden', !isMatch);
+        let storage = JSON.parse(localStorage.getItem('seo_dashboard') || '{"read":[], "fav":[]}');
+
+        function updateUI() {
+            document.querySelectorAll('.card').forEach(card => {
+                const id = card.id;
+                if (storage.read.includes(id)) card.classList.add('is-read');
+                if (storage.fav.includes(id)) {
+                    card.classList.add('is-fav');
+                    card.querySelector('.btn-fav').classList.add('active');
+                }
             });
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
+            renderFavs();
         }
+
+        function toggleRead(id) {
+            if (storage.read.includes(id)) storage.read = storage.read.filter(i => i !== id);
+            else storage.read.push(id);
+            save();
+        }
+
+        function toggleFav(id) {
+            if (storage.fav.includes(id)) storage.fav = storage.fav.filter(i => i !== id);
+            else storage.fav.push(id);
+            save();
+        }
+
+        function save() {
+            localStorage.setItem('seo_dashboard', JSON.stringify(storage));
+            location.reload();
+        }
+
+        function renderFavs() {
+            const favBox = document.getElementById('favorites-section');
+            if (storage.fav.length > 0) {
+                favBox.style.display = 'block';
+                const grid = favBox.querySelector('.grid');
+                grid.innerHTML = '';
+                storage.fav.forEach(id => {
+                    const original = document.getElementById(id);
+                    if (original) {
+                        const clone = original.cloneNode(true);
+                        clone.classList.remove('is-read');
+                        grid.appendChild(clone);
+                    }
+                });
+            }
+        }
+
+        window.onload = updateUI;
     </script>
     
-    </body></html>
+    </body>
+    </html>
     
