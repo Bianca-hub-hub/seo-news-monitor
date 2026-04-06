@@ -1,376 +1,1032 @@
 
     <!DOCTYPE html>
     <html>
-    <head><meta charset='utf-8'><title>SEO Intelligence Dashboard</title>
-    <style>
-        :root { --sidebar-w: 260px; --bg: #f4f6f8; --card-bg: #ffffff; --primary: #2563eb; --text: #1e293b; --text-light: #64748b; }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1'>
+        <title>SEO + GEO Intelligence Dashboard</title>
         
-        /* Sidebar */
+    <style>
+        :root { --sidebar-w: 280px; --bg: #f4f6f8; --card-bg: #ffffff; --primary: #2563eb; --text: #1e293b; --text-light: #64748b; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
         .sidebar { width: var(--sidebar-w); background: #fff; border-right: 1px solid #e2e8f0; padding: 24px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 32px; display: flex; align-items: center; gap: 10px; }
-        .nav-group { margin-bottom: 24px; }
-        .nav-title { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.05em; }
-        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: var(--text-light); text-decoration: none; border-radius: 8px; font-size: 0.9rem; font-weight: 500; transition: 0.2s; margin-bottom: 4px; }
-        .nav-item:hover, .nav-item.active { background: #eff6ff; color: var(--primary); }
-        .social-links { margin-top: auto; border-top: 1px solid #e2e8f0; padding-top: 20px; }
-
-        /* Main Area */
-        .main { flex: 1; overflow-y: auto; padding: 32px 40px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+        .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 24px; }
+        .nav-group { margin-bottom: 20px; }
+        .nav-title { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; }
+        .nav-item { display: block; padding: 10px 12px; color: var(--text-light); text-decoration: none; border-radius: 8px; font-size: 0.92rem; margin-bottom: 4px; }
+        .nav-item:hover { background: #eff6ff; color: var(--primary); }
+        .main { flex: 1; overflow-y: auto; padding: 28px 36px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
         .page-title { font-size: 1.5rem; font-weight: 700; }
         .filters { display: flex; gap: 8px; background: #e2e8f0; padding: 4px; border-radius: 8px; }
-        .filter-btn { border: none; background: none; padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: var(--text-light); cursor: pointer; }
-        .filter-btn.active { background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-
-        /* Insights Box (参考图核心) */
-        .insights-box { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0; margin-bottom: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        .box-header { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
-        .insight-row { margin-bottom: 16px; font-size: 0.95rem; line-height: 1.6; border-bottom: 1px dashed #f1f5f9; padding-bottom: 16px; }
+        .filter-btn { border: none; background: none; padding: 6px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: var(--text-light); cursor: pointer; }
+        .filter-btn.active { background: #fff; color: var(--text); }
+        .insights-box { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
+        .box-header { font-size: 1.05rem; font-weight: 700; margin-bottom: 16px; }
+        .insight-row { margin-bottom: 12px; font-size: 0.92rem; line-height: 1.6; border-bottom: 1px dashed #f1f5f9; padding-bottom: 12px; }
         .insight-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .insight-label { color: var(--primary); font-weight: 700; margin-bottom: 4px; font-size: 0.85rem; text-transform: uppercase; }
-        .insight-content a { color: var(--text); text-decoration: none; font-weight: 500; border-bottom: 1px solid #cbd5e1; transition: 0.2s; }
+        .insight-label { color: var(--primary); font-weight: 700; margin-bottom: 4px; }
+        .insight-content a { color: var(--text); text-decoration: none; border-bottom: 1px solid #cbd5e1; }
         .insight-content a:hover { color: var(--primary); border-color: var(--primary); }
-        .read-more { font-size: 0.75rem; color: #94a3b8; margin-left: 8px; cursor: pointer; }
-
-        /* Card Grid */
-        .grid-title { font-size: 1rem; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
-        .card { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; transition: 0.2s; position: relative; }
-        .card:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
-        .card.is-read { opacity: 0.6; filter: grayscale(1); }
-        .card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .source-tag { font-size: 0.7rem; font-weight: 700; color: var(--primary); background: #eff6ff; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+        .category-section { margin-bottom: 28px; }
+        .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
+        .card { background: #fff; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; position: relative; }
+        .card:hover { border-color: var(--primary); box-shadow: 0 8px 16px rgba(0,0,0,0.06); }
+        .card.is-read { opacity: 0.62; filter: grayscale(1); }
+        .card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .source-tag { font-size: 0.7rem; font-weight: 700; color: var(--primary); background: #eff6ff; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; }
         .date { font-size: 0.75rem; color: #94a3b8; }
-        .card h3 { font-size: 1.1rem; font-weight: 600; margin: 0 0 12px 0; line-height: 1.4; color: var(--text); }
-        .card p { font-size: 0.9rem; color: var(--text-light); line-height: 1.6; flex: 1; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .card-footer { border-top: 1px solid #f1f5f9; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* Buttons */
-        .action-btn { background: none; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; color: var(--text-light); transition: 0.2s; }
-        .action-btn:hover { border-color: var(--text-light); color: var(--text); }
-        .btn-primary { background: var(--text); color: #fff; border: none; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; }
-        .btn-primary:hover { background: #0f172a; }
-        
-        .video-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .card h3 { font-size: 1.03rem; margin: 0 0 10px 0; line-height: 1.4; }
+        .card p { font-size: 0.9rem; color: var(--text-light); line-height: 1.65; margin: 0 0 14px 0; flex: 1; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-footer { border-top: 1px solid #f1f5f9; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .action-btn { background: none; border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; color: var(--text-light); cursor: pointer; }
+        .btn-primary { background: var(--text); color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; }
+        .video-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; font-size: 0.68rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+        .health-box { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
+        .health-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+        .health-table th, .health-table td { border-bottom: 1px solid #f1f5f9; padding: 8px 6px; text-align: left; vertical-align: top; }
+        .health-table th { color: #64748b; font-weight: 700; }
+        .error-cell { max-width: 420px; color: #ef4444; word-break: break-all; }
     </style>
+    
     </head>
     <body>
-        <div class='sidebar'>
-            <div class='logo'>🚀 SEO.Intel</div>
+        <aside class='sidebar'>
+            <div class='logo'>🚀 SEO Intelligence Monitor</div>
             <div class='nav-group'>
-                <div class='nav-title'>Dashboards</div>
-                <a href='#' class='nav-item active'>📊 Overview</a>
-                <a href='#' class='nav-item'>⭐ Favorites</a>
+                <div class='nav-title'>分类导航</div>
+                <a href='#SEO 动态' class='nav-item'>🔍 SEO 动态</a><a href='#GEO 趋势' class='nav-item'>🌐 GEO 趋势</a><a href='#AI 搜索' class='nav-item'>🤖 AI 搜索</a><a href='#国内资讯' class='nav-item'>🇨🇳 国内资讯</a><a href='#X 社交动态' class='nav-item'>𝕏 X 社交动态</a>
             </div>
             <div class='nav-group'>
-                <div class='nav-title'>Feeds</div>
-                <a href='#' class='nav-item'>🌍 Google</a><a href='#' class='nav-item'>🤖 AI</a><a href='#' class='nav-item'>⚡ 实战技巧</a><a href='#' class='nav-item'>📺 视频与社交动态</a>
-            </div>
-            <div class='social-links'>
-                <div class='nav-title'>Social Pulse</div>
+                <div class='nav-title'>社交入口</div>
+                <a href='https://x.com/Aleyda' target='_blank' class='nav-item'>𝕏 Aleyda Solis</a>
+                <a href='https://x.com/lilyraynyc' target='_blank' class='nav-item'>𝕏 Lily Ray</a>
                 <a href='https://x.com/zarazhangrui' target='_blank' class='nav-item'>𝕏 Zara Zhang</a>
-                <a href='https://www.youtube.com/channel/UCWf2ZlNsCGDS89VBF_awNvA' target='_blank' class='nav-item'>📺 Google Search Central</a>
             </div>
-        </div>
-
-        <div class='main'>
+        </aside>
+        <main class='main'>
             <div class='header'>
-                <div class='page-title'>Intelligence Briefing</div>
+                <div class='page-title'>SEO / GEO / AI Search 情报看板</div>
                 <div class='filters'>
                     <button class='filter-btn' data-days='3'>3 Days</button>
                     <button class='filter-btn active' data-days='7'>7 Days</button>
                     <button class='filter-btn' data-days='30'>30 Days</button>
                 </div>
             </div>
-
-            <div class='insights-box'>
-                <div class='box-header'>⚡ Weekly SEO Insights Summary</div>
+            <section class='insights-box'>
+                <div class='box-header'>⚡ 本周重点摘要</div>
                 
             <div class='insight-row'>
-                <div class='insight-label'>Core Update Trends:</div>
-                <div class='insight-content'><a href='https://developers.google.com/search/blog/2026/03/crawler-ip-ranges' target='_blank'>New Location for the Google Crawlers' IP Range Files</a>。 <a href='https://developers.google.com/search/blog/2026/03/crawler-blog-post' target='_blank'>Inside Googlebot: demystifying crawling, fetching, and the bytes we process</a>。 <a href='https://www.youtube.com/watch?v=kype1JQbrks' target='_blank'>Are websites getting “fat”? Page weight, HTML size & Googlebot limits explained</a>... <span class='read-more'>[Read Insights]</span></div>
+                <div class='insight-label'>🔍 SEO 动态</div>
+                <div class='insight-content'>本期重点：<a href='https://developers.google.com/search/blog/2026/04/scl-shanghai-2026' target='_blank'>Search Central Live is Coming to Shanghai in 2026!</a></div>
             </div>
             
             <div class='insight-row'>
-                <div class='insight-label'>AI Trends:</div>
-                <div class='insight-content'><a href='https://blog.hubspot.com/marketing/ai-email-deliverability-optimization' target='_blank'>How AI improves email deliverability beyond send times</a>。 <a href='https://openai.com/index/openai-acquires-tbpn' target='_blank'>OpenAI acquires TBPN</a>。 <a href='https://openai.com/index/gradient-labs' target='_blank'>Gradient Labs gives every bank customer an AI account manager</a>... <span class='read-more'>[Read Insights]</span></div>
+                <div class='insight-label'>🤖 AI 搜索</div>
+                <div class='insight-content'>本期重点：<a href='https://openai.com/index/industrial-policy-for-the-intelligence-age' target='_blank'>Industrial policy for the Intelligence Age</a>；<a href='https://blog.google/innovation-and-ai/technology/developers-tools/introducing-flex-and-priority-inference/' target='_blank'>New ways to balance cost and reliability in the Gemini API</a>；<a href='https://blog.google/products-and-platforms/products/workspace/google-vids-updates-lyria-veo/' target='_blank'>Create, edit and share videos at no cost in Google Vids</a></div>
             </div>
             
             <div class='insight-row'>
-                <div class='insight-label'>Content Trends:</div>
-                <div class='insight-content'><a href='https://openai.com/index/codex-flexible-pricing-for-teams' target='_blank'>Codex now offers more flexible pricing for teams</a>。 <a href='https://developers.google.com/search/blog/2026/04/scl-shanghai-2026' target='_blank'>Search Central Live is Coming to Shanghai in 2026!</a>。 <a href='https://blog.hubspot.com/marketing/page-authority' target='_blank'>Page Authority: How to Build Pages That Rank</a>... <span class='read-more'>[Read Insights]</span></div>
+                <div class='insight-label'>🇨🇳 国内资讯</div>
+                <div class='insight-content'>本期重点：<a href='https://36kr.com/p/3755161993675523?f=rss' target='_blank'>科氪 | 荣耀与京东签订战略合作协议 推进AI、机器人、C2M共创合作</a>；<a href='https://36kr.com/newsflashes/3755111672496649?f=rss' target='_blank'>在英伟达的新一轮投资中，澳大利亚AI基础设施公司Firmus估值接近70亿美元</a>；<a href='https://36kr.com/newsflashes/3755104242238216?f=rss' target='_blank'>2026清明档电影票房已破2.8亿元</a></div>
             </div>
             
+            <div class='insight-row'>
+                <div class='insight-label'>𝕏 X 社交动态</div>
+                <div class='insight-content'>本期重点：<a href='https://x.com/Aleyda' target='_blank'>Aleyda Solis (X) 最新动态入口</a>；<a href='https://x.com/lilyraynyc' target='_blank'>Lily Ray (X) 最新动态入口</a>；<a href='https://x.com/zarazhangrui' target='_blank'>Zara Zhang (X) 最新动态入口</a></div>
             </div>
-
-            <div class='grid-title'>
-                <span>Latest Updates (15)</span>
-                <span style='font-size:0.8rem; color:#94a3b8;'>Auto-synced just now</span>
-            </div>
-            <div class='grid'>
-                
-        <div class='card' id='rabilityoptimization' data-ts='1775127601'>
             
-            <div class='card-meta'>
-                <span class='source-tag'>HubSpot Marketing</span>
-                <span class='date'>2026-04-02</span>
-            </div>
-            <h3>How AI improves email deliverability beyond send times</h3>
-            <p>Email deliverability is cumulative, and AI email deliverability optimization works by reinforcing the sending behaviors ...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('rabilityoptimization', this)">Mark Read</button>
-                <a href='https://blog.hubspot.com/marketing/ai-email-deliverability-optimization' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='exopenaiacquirestbpn' data-ts='1775125800'>
+            </section>
+            <section class='health-box'>
+                <div class='box-header'>🩺 信源健康状态</div>
+                <table class='health-table'>
+                    <thead>
+                        <tr>
+                            <th>分类</th>
+                            <th>信源</th>
+                            <th>状态</th>
+                            <th>近7天条目</th>
+                            <th>错误信息</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+            <tr>
+                <td>SEO 动态</td>
+                <td>Google Search Central</td>
+                <td>⚠️ 异常</td>
+                <td>3</td>
+                <td class='error-cell'>document declared as us-ascii, but parsed as utf-8</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>OpenAI News</span>
-                <span class='date'>2026-04-02</span>
-            </div>
-            <h3>OpenAI acquires TBPN</h3>
-            <p>OpenAI acquires TBPN to accelerate global conversations around AI and support independent media, expanding dialogue with...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('exopenaiacquirestbpn', this)">Mark Read</button>
-                <a href='https://openai.com/index/openai-acquires-tbpn' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='xiblepricingforteams' data-ts='1775124000'>
+            <tr>
+                <td>SEO 动态</td>
+                <td>Search Engine Land</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;unknown&gt;:2:751: not well-formed (invalid token)</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>OpenAI News</span>
-                <span class='date'>2026-04-02</span>
-            </div>
-            <h3>Codex now offers more flexible pricing for teams</h3>
-            <p>Codex now includes pay-as-you-go pricing for ChatGPT Business and Enterprise, providing teams a more flexible option to ...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('xiblepricingforteams', this)">Mark Read</button>
-                <a href='https://openai.com/index/codex-flexible-pricing-for-teams' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='02604sclshanghai2026' data-ts='1775088000'>
+            <tr>
+                <td>SEO 动态</td>
+                <td>SEO Roundtable</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>-</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>Google Search Central</span>
-                <span class='date'>2026-04-02</span>
-            </div>
-            <h3>Search Central Live is Coming to Shanghai in 2026!</h3>
-            <p>We are hosting Search Central Live Shanghai 2026 on May 15.
-  This event is structured for the local community, with a s...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('02604sclshanghai2026', this)">Mark Read</button>
-                <a href='https://developers.google.com/search/blog/2026/04/scl-shanghai-2026' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='comindexgradientlabs' data-ts='1775008800'>
+            <tr>
+                <td>SEO 动态</td>
+                <td>Ahrefs Blog</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>-</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>OpenAI News</span>
-                <span class='date'>2026-04-01</span>
-            </div>
-            <h3>Gradient Labs gives every bank customer an AI account manager</h3>
-            <p>Gradient Labs uses GPT-4.1 and GPT-5.4 mini and nano to power AI agents that automate banking support workflows with low...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('comindexgradientlabs', this)">Mark Read</button>
-                <a href='https://openai.com/index/gradient-labs' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='randscharacteristics' data-ts='1774996573'>
+            <tr>
+                <td>SEO 动态</td>
+                <td>Backlinko</td>
+                <td>✅ 正常</td>
+                <td>1</td>
+                <td class='error-cell'>-</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>Aleyda Solis</span>
-                <span class='date'>2026-03-31</span>
-            </div>
-            <h3>The 10 Key Characteristics of  AI Search Winning Brands [With an Assessment Checklist]</h3>
-            <p>What makes a brand to show up and get recommended across AI search platforms? Here's a list with a checklist to assess a...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('randscharacteristics', this)">Mark Read</button>
-                <a href='https://www.aleydasolis.com/en/ai-search/ai-search-winning-brands-characteristics/' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='ratingthenextphaseai' data-ts='1774962000'>
+            <tr>
+                <td>GEO 趋势</td>
+                <td>Search Engine Journal (AI Search)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;unknown&gt;:18:72: not well-formed (invalid token)</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>OpenAI News</span>
-                <span class='date'>2026-03-31</span>
-            </div>
-            <h3>Accelerating the next phase of AI</h3>
-            <p>OpenAI raises $122 billion in new funding to expand frontier AI globally, invest in next-generation compute, and meet gr...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('ratingthenextphaseai', this)">Mark Read</button>
-                <a href='https://openai.com/index/accelerating-the-next-phase-ai' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='rketingpageauthority' data-ts='1774954802'>
+            <tr>
+                <td>GEO 趋势</td>
+                <td>Perplexity Blog</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;unknown&gt;:2:751: not well-formed (invalid token)</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>HubSpot Marketing</span>
-                <span class='date'>2026-03-31</span>
-            </div>
-            <h3>Page Authority: How to Build Pages That Rank</h3>
-            <p>When I first started working in content and weaving SEO into my strategy, I treated Page Authority like a report card: t...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('rketingpageauthority', this)">Mark Read</button>
-                <a href='https://blog.hubspot.com/marketing/page-authority' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='02603crawleripranges' data-ts='1774915200'>
+            <tr>
+                <td>GEO 趋势</td>
+                <td>Aleyda Solis</td>
+                <td>✅ 正常</td>
+                <td>1</td>
+                <td class='error-cell'>-</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>Google Search Central</span>
-                <span class='date'>2026-03-31</span>
-            </div>
-            <h3>New Location for the Google Crawlers' IP Range Files</h3>
-            <p>Just a short note this time!</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('02603crawleripranges', this)">Mark Read</button>
-                <a href='https://developers.google.com/search/blog/2026/03/crawler-ip-ranges' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='02603crawlerblogpost' data-ts='1774915200'>
+            <tr>
+                <td>GEO 趋势</td>
+                <td>Onely (Tech SEO)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;unknown&gt;:2:0: syntax error</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>Google Search Central</span>
-                <span class='date'>2026-03-31</span>
-            </div>
-            <h3>Inside Googlebot: demystifying crawling, fetching, and the bytes we process</h3>
-            <p>If you tuned into
-  episode 105 of the Search Off the Record podcast,
-  you might have heard us diving deep into a topic...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('02603crawlerblogpost', this)">Mark Read</button>
-                <a href='https://developers.google.com/search/blog/2026/03/crawler-blog-post' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='etingautomationstats' data-ts='1774915200'>
+            <tr>
+                <td>AI 搜索</td>
+                <td>OpenAI News</td>
+                <td>✅ 正常</td>
+                <td>5</td>
+                <td class='error-cell'>-</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>Backlinko (Brian Dean)</span>
-                <span class='date'>2026-03-31</span>
-            </div>
-            <h3>15 Key Marketing Automation Statistics</h3>
-            <p>The marketing tech stack is always evolving. Marketing automation software enables improved efficiency with various feat...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('etingautomationstats', this)">Mark Read</button>
-                <a href='https://backlinko.com/marketing-automation-stats' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='comwatchvkype1JQbrks' data-ts='1774873201'>
-            <div class='video-badge'>▶ VIDEO</div>
-            <div class='card-meta'>
-                <span class='source-tag'>YouTube: Google Search Central</span>
-                <span class='date'>2026-03-30</span>
-            </div>
-            <h3>Are websites getting “fat”? Page weight, HTML size & Googlebot limits explained</h3>
-            <p>In this episode of Search Off the Record, Gary and Martin dig into what “page size” and “page weight” actually mean for ...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('comwatchvkype1JQbrks', this)">Mark Read</button>
-                <a href='https://www.youtube.com/watch?v=kype1JQbrks' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='ingbrandoptimization' data-ts='1774868403'>
+            <tr>
+                <td>AI 搜索</td>
+                <td>Google Blog (AI)</td>
+                <td>✅ 正常</td>
+                <td>5</td>
+                <td class='error-cell'>-</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>HubSpot Marketing</span>
-                <span class='date'>2026-03-30</span>
-            </div>
-            <h3>Brand optimization: What it is and why your AI visibility depends on it</h3>
-            <p>Consistency is key to achieving any goal. 
-Want to learn to play the piano? Practice consistently. Trying to get in shap...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('ingbrandoptimization', this)">Mark Read</button>
-                <a href='https://blog.hubspot.com/marketing/brand-optimization' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='icontentoptimization' data-ts='1774868403'>
+            <tr>
+                <td>AI 搜索</td>
+                <td>Microsoft Bing Blog</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;unknown&gt;:22:16: not well-formed (invalid token)</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>HubSpot Marketing</span>
-                <span class='date'>2026-03-30</span>
-            </div>
-            <h3>AI content optimization: How to get found in Google and AI search in 2026</h3>
-            <p>I've spent most of the last 10 years writing, managing, and improving content to reach internet audiences. But even for ...</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('icontentoptimization', this)">Mark Read</button>
-                <a href='https://blog.hubspot.com/marketing/ai-content-optimization' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
-        
-        <div class='card' id='terresponseteamsasia' data-ts='1774822500'>
+            <tr>
+                <td>国内资讯</td>
+                <td>36Kr AI</td>
+                <td>✅ 正常</td>
+                <td>30</td>
+                <td class='error-cell'>-</td>
+            </tr>
             
-            <div class='card-meta'>
-                <span class='source-tag'>OpenAI News</span>
-                <span class='date'>2026-03-29</span>
-            </div>
-            <h3>Helping disaster response teams turn AI into action across Asia</h3>
-            <p>AI for Disaster Response in Asia: OpenAI Workshop with Gates Foundation</p>
-            <div class='card-footer'>
-                <button class='action-btn btn-read' onclick="toggleRead('terresponseteamsasia', this)">Mark Read</button>
-                <a href='https://openai.com/index/helping-disaster-response-teams-asia' target='_blank' class='btn-primary'>Read Full →</a>
-            </div>
-        </div>
+            <tr>
+                <td>国内资讯</td>
+                <td>机器之心</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;unknown&gt;:12:244: mismatched tag</td>
+            </tr>
+            
+            <tr>
+                <td>国内资讯</td>
+                <td>InfoQ AI</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;unknown&gt;:2:1329: not well-formed (invalid token)</td>
+            </tr>
+            
+            <tr>
+                <td>国内资讯</td>
+                <td>独立站与SEO艺术(订阅源占位)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;unknown&gt;:2:751: not well-formed (invalid token)</td>
+            </tr>
+            
+            <tr>
+                <td>国内资讯</td>
+                <td>从0到AI(订阅源占位)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;unknown&gt;:2:751: not well-formed (invalid token)</td>
+            </tr>
+            
+            <tr>
+                <td>X 社交动态</td>
+                <td>Aleyda Solis (X)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;unknown&gt;:3:11: not well-formed (invalid token)</td>
+            </tr>
+            
+            <tr>
+                <td>X 社交动态</td>
+                <td>Lily Ray (X)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;unknown&gt;:3:11: not well-formed (invalid token)</td>
+            </tr>
+            
+            <tr>
+                <td>X 社交动态</td>
+                <td>Zara Zhang (X)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;unknown&gt;:3:11: not well-formed (invalid token)</td>
+            </tr>
+            
+                    </tbody>
+                </table>
+            </section>
+            
+            <section class='category-section' id='SEO 动态'>
+                <div class='section-title'>
+                    <span>🔍 SEO 动态</span>
+                    <span style='font-size:0.78rem; color:#94a3b8;'>4 条</span>
+                </div>
+                <div class='grid'>
+    <article class='card card-item' id='6101aab65223ef1f' data-ts='1775088000'>
         
-            </div>
+        <div class='card-meta'>
+            <span class='source-tag'>Google Search Central</span>
+            <span class='date'>2026-04-02</span>
         </div>
+        <h3>Search Central Live is Coming to Shanghai in 2026!</h3>
+        <p>来自Google Search Central：We are hosting Search Central Live Shanghai 2026 on May 15. This event is structured for the loc。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('6101aab65223ef1f', this)">Mark Read</button>
+            <a href='https://developers.google.com/search/blog/2026/04/scl-shanghai-2026' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='6f995e4ee6933c44' data-ts='1774915200'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Google Search Central</span>
+            <span class='date'>2026-03-31</span>
+        </div>
+        <h3>New Location for the Google Crawlers&#x27; IP Range Files</h3>
+        <p>来自Google Search Central：Just a short note this time!。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('6f995e4ee6933c44', this)">Mark Read</button>
+            <a href='https://developers.google.com/search/blog/2026/03/crawler-ip-ranges' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='54647fccdb9aa17c' data-ts='1774915200'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Google Search Central</span>
+            <span class='date'>2026-03-31</span>
+        </div>
+        <h3>Inside Googlebot: demystifying crawling, fetching, and the bytes we process</h3>
+        <p>来自Google Search Central：If you tuned into episode 105 of the Search Off the Record podcast, you might have heard us divi。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('54647fccdb9aa17c', this)">Mark Read</button>
+            <a href='https://developers.google.com/search/blog/2026/03/crawler-blog-post' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='9cd7a242853d1ed1' data-ts='1774915200'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Backlinko</span>
+            <span class='date'>2026-03-31</span>
+        </div>
+        <h3>15 Key Marketing Automation Statistics</h3>
+        <p>来自Backlinko：The marketing tech stack is always evolving. Marketing automation software enables improved efficiency with 。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('9cd7a242853d1ed1', this)">Mark Read</button>
+            <a href='https://backlinko.com/marketing-automation-stats' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    </div>
+            </section>
+            
+            <section class='category-section' id='GEO 趋势'>
+                <div class='section-title'>
+                    <span>🌐 GEO 趋势</span>
+                    <span style='font-size:0.78rem; color:#94a3b8;'>1 条</span>
+                </div>
+                <div class='grid'>
+    <article class='card card-item' id='7ba61f66b17e9e09' data-ts='1774996573'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Aleyda Solis</span>
+            <span class='date'>2026-03-31</span>
+        </div>
+        <h3>The 10 Key Characteristics of  AI Search Winning Brands [With an Assessment Checklist]</h3>
+        <p>来自Aleyda Solis：What makes a brand to show up and get recommended across AI search platforms? Here&#x27;s a list with a checkl。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('7ba61f66b17e9e09', this)">Mark Read</button>
+            <a href='https://www.aleydasolis.com/en/ai-search/ai-search-winning-brands-characteristics/' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    </div>
+            </section>
+            
+            <section class='category-section' id='AI 搜索'>
+                <div class='section-title'>
+                    <span>🤖 AI 搜索</span>
+                    <span style='font-size:0.78rem; color:#94a3b8;'>10 条</span>
+                </div>
+                <div class='grid'>
+    <article class='card card-item' id='49299f5db346ec41' data-ts='1775442600'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>OpenAI News</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>Industrial policy for the Intelligence Age</h3>
+        <p>来自OpenAI News：Explore our ambitious, people-first industrial policy ideas for the AI era—focused on expanding opportunit。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('49299f5db346ec41', this)">Mark Read</button>
+            <a href='https://openai.com/index/industrial-policy-for-the-intelligence-age' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='97e0afec9e7c2a1e' data-ts='1775145600'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Google Blog (AI)</span>
+            <span class='date'>2026-04-02</span>
+        </div>
+        <h3>New ways to balance cost and reliability in the Gemini API</h3>
+        <p>来自Google Blog (AI)：Gemini API Dials。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('97e0afec9e7c2a1e', this)">Mark Read</button>
+            <a href='https://blog.google/innovation-and-ai/technology/developers-tools/introducing-flex-and-priority-inference/' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='680f786866fb58c6' data-ts='1775145600'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Google Blog (AI)</span>
+            <span class='date'>2026-04-02</span>
+        </div>
+        <h3>Create, edit and share videos at no cost in Google Vids</h3>
+        <p>来自Google Blog (AI)：Google Vids logo surrounded by various video editing UI。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('680f786866fb58c6', this)">Mark Read</button>
+            <a href='https://blog.google/products-and-platforms/products/workspace/google-vids-updates-lyria-veo/' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='a0d93f8fc503b7a9' data-ts='1775125800'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>OpenAI News</span>
+            <span class='date'>2026-04-02</span>
+        </div>
+        <h3>OpenAI acquires TBPN</h3>
+        <p>来自OpenAI News：OpenAI acquires TBPN to accelerate global conversations around AI and support independent media, expanding。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('a0d93f8fc503b7a9', this)">Mark Read</button>
+            <a href='https://openai.com/index/openai-acquires-tbpn' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='cbb286d3e9fdd18b' data-ts='1775124000'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>OpenAI News</span>
+            <span class='date'>2026-04-02</span>
+        </div>
+        <h3>Codex now offers more flexible pricing for teams</h3>
+        <p>来自OpenAI News：Codex now includes pay-as-you-go pricing for ChatGPT Business and Enterprise, providing teams a more flexi。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('cbb286d3e9fdd18b', this)">Mark Read</button>
+            <a href='https://openai.com/index/codex-flexible-pricing-for-teams' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='acb593660356c013' data-ts='1775050200'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Google Blog (AI)</span>
+            <span class='date'>2026-04-01</span>
+        </div>
+        <h3>We’re creating a new satellite imagery map to help protect Brazil’s forests.</h3>
+        <p>来自Google Blog (AI)：Google partnered with the Brazilian government on a satellite imagery map to help protect the country。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('acb593660356c013', this)">Mark Read</button>
+            <a href='https://blog.google/products-and-platforms/products/earth/satellite-imagery-brazilian-deforestation/' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='fb1c23a603fdd53c' data-ts='1775048400'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Google Blog (AI)</span>
+            <span class='date'>2026-04-01</span>
+        </div>
+        <h3>The latest AI news we announced in March 2026</h3>
+        <p>来自Google Blog (AI)：March 2026 AI Recap showing new updates。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('fb1c23a603fdd53c', this)">Mark Read</button>
+            <a href='https://blog.google/innovation-and-ai/technology/ai/google-ai-updates-march-2026/' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='0028da6453d75b4d' data-ts='1775008800'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>OpenAI News</span>
+            <span class='date'>2026-04-01</span>
+        </div>
+        <h3>Gradient Labs gives every bank customer an AI account manager</h3>
+        <p>来自OpenAI News：Gradient Labs uses GPT-4.1 and GPT-5.4 mini and nano to power AI agents that automate banking support work。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('0028da6453d75b4d', this)">Mark Read</button>
+            <a href='https://openai.com/index/gradient-labs' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='19f61dd8623eaead' data-ts='1774972800'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Google Blog (AI)</span>
+            <span class='date'>2026-03-31</span>
+        </div>
+        <h3>Build with Veo 3.1 Lite, our most cost-effective video generation model</h3>
+        <p>来自Google Blog (AI)：Build with Veo 3.1 Lite。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('19f61dd8623eaead', this)">Mark Read</button>
+            <a href='https://blog.google/innovation-and-ai/technology/ai/veo-3-1-lite/' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='b8ee98d24cc546d5' data-ts='1774962000'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>OpenAI News</span>
+            <span class='date'>2026-03-31</span>
+        </div>
+        <h3>Accelerating the next phase of AI</h3>
+        <p>来自OpenAI News：OpenAI raises $122 billion in new funding to expand frontier AI globally, invest in next-generation comput。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('b8ee98d24cc546d5', this)">Mark Read</button>
+            <a href='https://openai.com/index/accelerating-the-next-phase-ai' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    </div>
+            </section>
+            
+            <section class='category-section' id='国内资讯'>
+                <div class='section-title'>
+                    <span>🇨🇳 国内资讯</span>
+                    <span style='font-size:0.78rem; color:#94a3b8;'>30 条</span>
+                </div>
+                <div class='grid'>
+    <article class='card card-item' id='769443d934576a32' data-ts='1775468910'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>科氪 | 荣耀与京东签订战略合作协议 推进AI、机器人、C2M共创合作</h3>
+        <p>来自36Kr AI：4月2日，荣耀与京东签订战略合作协议，正式建立全方位战略合作伙伴关系，双方将围绕产品共创、用户共营、生态共享三大核心领域，构建全面覆盖、深度融合、价值共生的新型合作体系，致力于实现三年累计规模超1000亿元的全领域合作目。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('769443d934576a32', this)">Mark Read</button>
+            <a href='https://36kr.com/p/3755161993675523?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='0f1ce831f20a0d23' data-ts='1775466302'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>在英伟达的新一轮投资中，澳大利亚AI基础设施公司Firmus估值接近70亿美元</h3>
+        <p>来自36Kr AI：在英伟达的新一轮投资中，澳大利亚AI基础设施公司Firmus估值接近70亿美元。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('0f1ce831f20a0d23', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3755111672496649?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='adb892543b92e658' data-ts='1775465969'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>2026清明档电影票房已破2.8亿元</h3>
+        <p>来自36Kr AI：据网络平台数据，截至今日15时29分，2026年清明档档期（4月4日—4月6日）电影票房（含预售）突破2.8亿元。（每经网）。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('adb892543b92e658', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3755104242238216?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='a18d6f2e7d61ead4' data-ts='1775465314'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>全球海拔最高的槽式光热电站在西藏开工建设</h3>
+        <p>来自36Kr AI：4月6日上午，中广核西藏当雄乌玛塘“光热+光伏”一体化项目中的50兆瓦光热电站在拉萨市当雄县乌玛塘乡正式开工建设。据中广核光热技术型号首席专家尹航介绍，该项目场址海拔4550米，是目前全球海拔最高的槽式光热电站。 (新华。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('a18d6f2e7d61ead4', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3755103260918279?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='d6e1441b8b752f02' data-ts='1775464554'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>中国核电：第一季度上网电量为549.25亿千瓦时 同比下降2.7%</h3>
+        <p>来自36Kr AI：中国核电(601985.SH)公告称，截至2026年3月31日，公司2026年第一季度累计商运发电量为581.09亿千瓦时，同比下降2.73%；上网电量为549.25亿千瓦时，同比下降2.7%。2026年第一季度，公司核。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('d6e1441b8b752f02', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3755060414644739?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='68f3e7f84d67493c' data-ts='1775463946'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>国际原油价格持续走低</h3>
+        <p>来自36Kr AI：国际原油价格持续走低，WTI原油跌2.22%，报109.061美元/桶；布伦特原油跌1.22%，报107.698美元/桶。（界面）。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('68f3e7f84d67493c', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3755055431664136?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='0ade1470c3e2ffe0' data-ts='1775462803'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>清明假期预计跨区域流动8.4亿人次</h3>
+        <p>来自36Kr AI：记者从交通运输部获悉，清明假期（4月4日至6日），全社会跨区域人员流动量预计84537.8万人次，日均28179万人次，同比增长6%。今年全国多地中小学春假与清明连休，激发了以亲子游、家庭游为主的出行热潮，形成了覆盖交通。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('0ade1470c3e2ffe0', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3755054417789702?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='7a7067ddfaf4c125' data-ts='1775462625'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>美股大型科技股盘前多数上涨，特斯拉涨1%</h3>
+        <p>来自36Kr AI：美股大型科技股盘前多数上涨，特斯拉涨1%，Meta、微软涨0.5%，谷歌A涨0.4%，亚马逊涨0.3%，英伟达涨0.2%，苹果跌0.1%。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('7a7067ddfaf4c125', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3755059209437953?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='7c5ebe20b40610ce' data-ts='1775462480'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>现货黄金突破4680美元/盎司</h3>
+        <p>来自36Kr AI：4月6日，现货黄金突破4680美元/盎司，日内涨0.10%。（每经网）。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('7c5ebe20b40610ce', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3755056832332292?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='bdf7a3e104b4f905' data-ts='1775462288'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>美元指数失守100关口</h3>
+        <p>来自36Kr AI：美元指数失守100关口，下跌0.21%，报99.99点。（财联社）。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('bdf7a3e104b4f905', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3755053684474376?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='f1c77b919ac0bc88' data-ts='1775460801'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>韩国计划将可再生能源发电占比提升至20%</h3>
+        <p>来自36Kr AI：韩国气候能源环境部6日宣布，韩国计划到2030年将可再生能源发电占比提升到至少20%，以降低对进口能源的高度依赖，并应对高端产业发展带来的电力需求增加。根据气候能源环境部在内阁会议上汇报的这项计划，韩国将大力发展太阳能与。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('f1c77b919ac0bc88', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3755019581506307?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='01db215939cc8ac5' data-ts='1775460167'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>司美格鲁肽口服减重药已开出超60万张处方，市场空间还有多大</h3>
+        <p>来自36Kr AI：根据诺和诺德最新披露的数据，目前旗下司美格鲁肽口服减重药的处方量超过60万张。瑞银集团（UBS）估计，礼来公司的口服减重药物与诺和诺德的口服版司美格鲁肽在2026年合计将创造约50亿美元的收入。不过，在诺和诺德CEO看来。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('01db215939cc8ac5', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3755018936533512?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='f374359a0ca0c1af' data-ts='1775459339'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>媒体：全球最大的电池制造商宁德时代将雄心拓展至远洋 计划今年将其海洋事业部规模扩大一倍</h3>
+        <p>来自36Kr AI：据英国金融时报报道，全球最大的电池制造商宁德时代决定“全力以赴”推动全球航运业的电动化进程，试图将其在电动汽车领域的成功经验复制到海上领域。作为宁德时代对这一领域投入决心的体现，负责其海洋业务部门的Su Yi表示，她计划。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('f374359a0ca0c1af', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3754997579662089?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='1a503efaa1ebff58' data-ts='1775458684'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>苹果首款折叠屏手机已在试产</h3>
+        <p>来自36Kr AI：记者4月6日从产业链人士处获悉，富士康已在试产苹果折叠屏iPhone手机。2025年，记者从供应链公司获悉，苹果给供应商提供的出货目标指引为2026年下半年推出首款折叠屏手机，是一款大折叠屏iPhone。 (中证金牛座)。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('1a503efaa1ebff58', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3754994635752193?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='fdc5564b1186b21c' data-ts='1775457921'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>日经225指数收涨0.55%</h3>
+        <p>来自36Kr AI：日经225指数收涨0.55%，报53413.68点；韩国KOSPI指数收涨1.36%，报5450.35点。（界面）。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('fdc5564b1186b21c', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3754982137889282?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='b909bf336ac72d74' data-ts='1775457205'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>业内人士认为碳酸锂价格出现短期回调</h3>
+        <p>来自36Kr AI：连日来，碳酸锂期货价格持续回调。截至4月3日，主力合约报收156960元/吨，跌幅1.42%。业内人士认为，碳酸锂价格出现短期回调，主要诱因是锂供应端扰动再度发酵。近日，市场有消息称，中矿资源已获得津巴布韦锂精矿出口配额。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('b909bf336ac72d74', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3754963659899396?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='44ff4703e9bf0b96' data-ts='1775456835'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>OpenAI状态页显示：ChatGPT 网页版当前出现故障</h3>
+        <p>来自36Kr AI：OpenAI状态页显示：ChatGPT 网页版当前出现故障。（新浪财经）。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('44ff4703e9bf0b96', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3754964348830470?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='2440f690547a4508' data-ts='1775456733'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>日本40年期国债收益率上升9.5个基点，至3.965%</h3>
+        <p>来自36Kr AI：日本40年期国债收益率上升9.5个基点，至3.965%。（每经网）。点击卡片可查看原文。该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('2440f690547a4508', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3754962668192257?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='7c74d09420874364' data-ts='1775450151'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>商务部电子商务司负责人解读《关于更好服务实体经济 推进电子商务高质量发展的指导意见》</h3>
+        <p>来自36Kr AI：36氪获悉，近日，商务部会同中央网信办、工业和信息化部、农业农村部、文化和旅游部、市场监管总局等5部门印发《关于更好服务实体经济推进电子商务高质量发展的指导意见》（下称《意见》），商务部电子商务司负责人就《意见》进行了解。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('7c74d09420874364', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3754841165103624?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='9a6d9b1047e9310f' data-ts='1775449498'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>红果短剧：针对近期AI短剧素材违规使用问题频发的情况，已处置作品670部</h3>
+        <p>来自36Kr AI：36氪获悉，红果短剧官方账号4月6日发布《关于持续治理AI短剧素材违规使用行为的公告》：今年第一季度，平台已累计下架违反平台治理规范的漫剧1718部。其中针对近期AI短剧素材违规使用问题频发的情况，平台专项开展集中治理。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('9a6d9b1047e9310f', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3754835385614848?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='7bd13568a8d149d5' data-ts='1775448917'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>清明假期迎返程高峰 三天假期跨区域人员流动量预计达8.4亿人次</h3>
+        <p>来自36Kr AI：今天是清明假期的最后一天，全国出行迎来返程高峰，全社会跨区域人员流动量增长明显。交通运输部数据显示，三天假期，全社会跨区域人员流动量预计达8.4亿人次，铁路、公路、民航首日客运量均超历史同期峰值。 今天，全国铁路预计发送。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('7bd13568a8d149d5', this)">Mark Read</button>
+            <a href='https://36kr.com/newsflashes/3754834610848262?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='09b688959a3494b0' data-ts='1775447623'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>众筹300万美元的Agent盒子，想彻底解决你的算力焦虑</h3>
+        <p>来自36Kr AI：作者 | 张子怡 编辑 | 袁斯来 AI硬件赛道，似乎一夜之间跨入新世界。 上一个月，投资人还在打听硬件大厂高P创始人，这一个月，他们已经开始寻觅“下一个Mac mini”。 狂欢的起点，来自开源智能体框架OpenCla。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('09b688959a3494b0', this)">Mark Read</button>
+            <a href='https://36kr.com/p/3754812277998083?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='85ed9466e94d3420' data-ts='1775369109'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-05</span>
+        </div>
+        <h3>36氪首发 | 清华系团队研发矿石AI智能分选机，完成近2亿元C轮融资</h3>
+        <p>来自36Kr AI：作者丨欧雪 编辑丨袁斯来 硬氪获悉，矿石AI智能分选设备企业——北京霍里思特科技有限公司（下称“霍里思特”）已完成近2亿元C轮融资，由招商局资本领投，京国瑞、大兴产投、北创投、开源思创及初辉资本跟投。本轮资金将主要用于核。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('85ed9466e94d3420', this)">Mark Read</button>
+            <a href='https://36kr.com/p/3753526848897792?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='beeb4e52bace3d5b' data-ts='1775351400'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-05</span>
+        </div>
+        <h3>高端智能投影品牌AWOL Vision获近亿元B轮融资，新品拿下近2000万美金众筹｜硬氪首发</h3>
+        <p>来自36Kr AI：作者｜黄楠 编辑｜袁斯来 硬氪获悉，高端智能投影品牌AWOL Vision近日完成近亿元B轮融资，投资方包括天堂硅谷、会畅科技及金鹏佳等机构。资金将主要用于核心技术研发，持续迭代超短焦与长焦激光显示能力，并推进“家庭AI。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('beeb4e52bace3d5b', this)">Mark Read</button>
+            <a href='https://36kr.com/p/3752260051616512?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='e3cf6bf230badbb5' data-ts='1775283070'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-04</span>
+        </div>
+        <h3>一群00后极客和这家机器人公司共处72小时</h3>
+        <p>来自36Kr AI：2026年3月29日下午5点，在我们抵达深圳科创学院四楼时，参加“全球首届具身智能开发者大会”的20组选手，已经在这里持续开发了60个小时。 现场弥漫着一股咖啡混合着冷气的味道，随处可见没吃完的奶茶和果切，楼道里和墙角支。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('e3cf6bf230badbb5', this)">Mark Read</button>
+            <a href='https://36kr.com/p/3752115857638145?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='1fc47c12d6b828ab' data-ts='1775218133'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-03</span>
+        </div>
+        <h3>神州数码2025年营收超1400亿，AI相关业务增长近五成｜最前线</h3>
+        <p>来自36Kr AI：作者｜黄楠 编辑｜袁斯来 神州数码（000034.SZ）2025年全年业绩报告近日发布。 财报显示，公司全年实现营业收入1438亿元，同比增长12%，营收规模连续三年稳步攀升。其中，AI相关业务成为核心增长引擎，全年收入。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('1fc47c12d6b828ab', this)">Mark Read</button>
+            <a href='https://36kr.com/p/3751046517129735?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='98bde5813b9cd761' data-ts='1775199377'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-03</span>
+        </div>
+        <h3>元气森林2044创造营背后：创新要年轻，研发要更重 | 最前线</h3>
+        <p>来自36Kr AI：作者 | 钟艺璇 3月30日，第二届“元气森林创造营2044”活动在咸宁举行。活动现场，十余位年轻的产品经理带着多款元气森林家族新产品上台亮相，分享了各自打造新品的初心与研发历程。 “创造营2044”萌芽于2024年元气。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('98bde5813b9cd761', this)">Mark Read</button>
+            <a href='https://36kr.com/p/3749467949482759?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='3dcc59cb62760828' data-ts='1775197491'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-03</span>
+        </div>
+        <h3>一款运营三年的模拟经营游戏，是如何活力依旧的？</h3>
+        <p>来自36Kr AI：文｜兰杰 编辑｜刘士武 你觉得桃源是？A：逃避之所；B：向往之所。 这是《桃源深处有人家》中一个经典的选择，某种程度上也是这个游戏的侧写。在这款游戏中，聚集了追求生活感和希望慢下来的村民和玩家。 3月22日，模拟经营游戏。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('3dcc59cb62760828', this)">Mark Read</button>
+            <a href='https://36kr.com/p/3750714899415817?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='9713cd94e161d433' data-ts='1775197286'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-03</span>
+        </div>
+        <h3>泡泡玛特，风光不再？</h3>
+        <p>来自36Kr AI：文｜兰杰 编辑｜乔芊 2025年，泡泡玛特已经成长为一个庞然大物。 3月25日，泡泡玛特公布了2025年财报，收入为人民币371.2亿元，同比增长185%，净利润为130.1亿元，同比增长293%。其中，海外市场成为拉动。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('9713cd94e161d433', this)">Mark Read</button>
+            <a href='https://36kr.com/p/3750711532569350?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='87a1a1dc629e41a9' data-ts='1775196906'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>36Kr AI</span>
+            <span class='date'>2026-04-03</span>
+        </div>
+        <h3>阅文“AI拟真人大讲堂”：好故事才是AI时代的未来</h3>
+        <p>来自36Kr AI：如今内容行业风头正盛的莫过于AI拟真人剧。 它是从AI漫剧这一赛道中生长出来的内容形态，也是视频生成大模型飞跃式进步下的产物。 早在2025年下半年的时候，这一内容形态就已经崭露头角。彼时有一批从业者认为，AI拟真人剧的。点击卡片可查看原文。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('87a1a1dc629e41a9', this)">Mark Read</button>
+            <a href='https://36kr.com/p/3750704146072326?f=rss' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    </div>
+            </section>
+            
+            <section class='category-section' id='X 社交动态'>
+                <div class='section-title'>
+                    <span>𝕏 X 社交动态</span>
+                    <span style='font-size:0.78rem; color:#94a3b8;'>3 条</span>
+                </div>
+                <div class='grid'>
+    <article class='card card-item' id='f898d03ac72ac955' data-ts='1775482600'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Aleyda Solis (X)</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>Aleyda Solis (X) 最新动态入口</h3>
+        <p>当前未拉取到可用RSS条目，已提供该专家的X主页入口，便于你直接查看最新观点与实时讨论。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('f898d03ac72ac955', this)">Mark Read</button>
+            <a href='https://x.com/Aleyda' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='7c12ddc4dc15a808' data-ts='1775482600'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Lily Ray (X)</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>Lily Ray (X) 最新动态入口</h3>
+        <p>当前未拉取到可用RSS条目，已提供该专家的X主页入口，便于你直接查看最新观点与实时讨论。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('7c12ddc4dc15a808', this)">Mark Read</button>
+            <a href='https://x.com/lilyraynyc' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='aab71456f097c131' data-ts='1775482600'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Zara Zhang (X)</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>Zara Zhang (X) 最新动态入口</h3>
+        <p>当前未拉取到可用RSS条目，已提供该专家的X主页入口，便于你直接查看最新观点与实时讨论。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('aab71456f097c131', this)">Mark Read</button>
+            <a href='https://x.com/zarazhangrui' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    </div>
+            </section>
+            
+        </main>
         
     <script>
-        // 本地存储：标记已读和收藏
-        let db = JSON.parse(localStorage.getItem('seo_dashboard_v5') || '{"read":[], "fav":[]}');
-
+        let db = JSON.parse(localStorage.getItem('seo_dashboard_v6') || '{"read":[]}');
+        function save() { localStorage.setItem('seo_dashboard_v6', JSON.stringify(db)); }
         function toggleRead(id, btn) {
             if (!db.read.includes(id)) {
                 db.read.push(id);
-                document.getElementById(id).classList.add('is-read');
+                const card = document.getElementById(id);
+                if (card) card.classList.add('is-read');
                 btn.innerText = '已读';
+                save();
             }
-            save();
         }
-
-        function save() { localStorage.setItem('seo_dashboard_v5', JSON.stringify(db)); }
-
-        // 页面加载时应用状态
+        function applyDaysFilter(days) {
+            const now = Math.floor(Date.now() / 1000);
+            document.querySelectorAll('.card-item').forEach(card => {
+                const ts = parseInt(card.dataset.ts);
+                const visible = (now - ts) <= (days * 86400);
+                card.style.display = visible ? 'flex' : 'none';
+            });
+        }
         window.onload = () => {
             db.read.forEach(id => {
                 const card = document.getElementById(id);
-                if(card) {
+                if (card) {
                     card.classList.add('is-read');
                     const btn = card.querySelector('.btn-read');
-                    if(btn) btn.innerText = '已读';
+                    if (btn) btn.innerText = '已读';
                 }
             });
-            
-            // 简单的 Tab 切换逻辑
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     e.target.classList.add('active');
-                    const days = parseInt(e.target.dataset.days);
-                    const now = Math.floor(Date.now() / 1000);
-                    
-                    document.querySelectorAll('.card').forEach(card => {
-                        const ts = parseInt(card.dataset.ts);
-                        if ((now - ts) > (days * 86400)) {
-                            card.style.display = 'none';
-                        } else {
-                            card.style.display = 'flex';
-                        }
-                    });
+                    applyDaysFilter(parseInt(e.target.dataset.days));
                 });
             });
+            applyDaysFilter(7);
         };
     </script>
     
