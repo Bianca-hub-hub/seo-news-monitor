@@ -92,10 +92,10 @@ def fallback_cn_summary(item, target_len=120):
 
 
 def build_ai_client():
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key or OpenAI is None:
         return None
-    base_url = os.getenv("OPENAI_BASE_URL", "").strip() or None
+    base_url = (os.environ.get("OPENAI_BASE_URL") or "https://free.aipro.love/v1").strip()
     return OpenAI(api_key=api_key, base_url=base_url)
 
 
@@ -103,12 +103,13 @@ def generate_ai_summary(client, item):
     if client is None:
         return fallback_cn_summary(item)
 
-    model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    model = "claude-3-5-sonnet"
     raw = normalize_text(item.get("raw_summary", ""))[:1200]
     prompt = (
-        "你是SEO与AI搜索行业编辑。请将以下资讯压缩成中文摘要，"
-        "控制在100-150字，要求信息密度高、语义清晰、无营销话术。"
-        "输出纯文本，不要使用项目符号。\n\n"
+        "你是SEO与DTC家具行业研究编辑。请从SEO增长、内容策略、"
+        "搜索流量获取、家具垂类转化机会的视角总结下列资讯。"
+        "输出100-150字中文精简摘要，信息密度高、可执行、无营销话术，"
+        "只输出纯文本，不要使用项目符号。\n\n"
         f"来源：{item['source']}\n"
         f"分类：{item['category']}\n"
         f"标题：{item['title']}\n"
@@ -118,7 +119,7 @@ def generate_ai_summary(client, item):
         resp = client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", "content": "你是严谨的中文科技编辑。"},
+                {"role": "system", "content": "你是严谨的中文SEO策略编辑。"},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.2,
@@ -126,10 +127,11 @@ def generate_ai_summary(client, item):
         text = (resp.choices[0].message.content or "").strip()
         text = re.sub(r"\s+", "", text)
         if len(text) < 95 or len(text) > 170:
-            return fallback_cn_summary(item)
+            return None
         return text[:150]
-    except Exception:
-        return fallback_cn_summary(item)
+    except Exception as e:
+        print(f"[WARN] AI summary failed: {item['title'][:60]} -> {e}")
+        return None
 
 
 def parse_entry_date(entry, now):
@@ -480,13 +482,27 @@ def fetch_data():
     inject_x_fallback_cards(all_data, time_limit)
 
     ai_client = build_ai_client()
+    final_items = []
     for item in all_data:
-        if not item.get("summary"):
-            item["summary"] = generate_ai_summary(ai_client, item)
+        if item.get("summary"):
+            final_items.append(item)
+            continue
 
-    all_data.sort(key=lambda x: x["ts"], reverse=True)
-    render_dashboard(all_data, source_health)
-    print(f"[OK] Generated index.html with {len(all_data)} items")
+        if ai_client is None:
+            item["summary"] = fallback_cn_summary(item)
+            final_items.append(item)
+            continue
+
+        summary = generate_ai_summary(ai_client, item)
+        if summary is None:
+            # 按需跳过AI失败条目，避免整批任务中断
+            continue
+        item["summary"] = summary
+        final_items.append(item)
+
+    final_items.sort(key=lambda x: x["ts"], reverse=True)
+    render_dashboard(final_items, source_health)
+    print(f"[OK] Generated index.html with {len(final_items)} items")
 
 
 if __name__ == "__main__":
