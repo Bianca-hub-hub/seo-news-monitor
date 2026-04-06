@@ -1,0 +1,389 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1'>
+        <title>SEO + GEO Intelligence Dashboard</title>
+        
+    <style>
+        :root { --sidebar-w: 280px; --bg: #f4f6f8; --card-bg: #ffffff; --primary: #2563eb; --text: #1e293b; --text-light: #64748b; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: var(--sidebar-w); background: #fff; border-right: 1px solid #e2e8f0; padding: 24px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 24px; }
+        .nav-group { margin-bottom: 20px; }
+        .nav-title { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; }
+        .nav-item { display: block; padding: 10px 12px; color: var(--text-light); text-decoration: none; border-radius: 8px; font-size: 0.92rem; margin-bottom: 4px; }
+        .nav-item:hover { background: #eff6ff; color: var(--primary); }
+        .main { flex: 1; overflow-y: auto; padding: 28px 36px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+        .page-title { font-size: 1.5rem; font-weight: 700; }
+        .filters { display: flex; gap: 8px; background: #e2e8f0; padding: 4px; border-radius: 8px; }
+        .filter-btn { border: none; background: none; padding: 6px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: var(--text-light); cursor: pointer; }
+        .filter-btn.active { background: #fff; color: var(--text); }
+        .insights-box { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
+        .box-header { font-size: 1.05rem; font-weight: 700; margin-bottom: 16px; }
+        .insight-row { margin-bottom: 12px; font-size: 0.92rem; line-height: 1.6; border-bottom: 1px dashed #f1f5f9; padding-bottom: 12px; }
+        .insight-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .insight-label { color: var(--primary); font-weight: 700; margin-bottom: 4px; }
+        .insight-content a { color: var(--text); text-decoration: none; border-bottom: 1px solid #cbd5e1; }
+        .insight-content a:hover { color: var(--primary); border-color: var(--primary); }
+        .category-section { margin-bottom: 28px; }
+        .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
+        .card { background: #fff; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; position: relative; }
+        .card:hover { border-color: var(--primary); box-shadow: 0 8px 16px rgba(0,0,0,0.06); }
+        .card.is-read { opacity: 0.62; filter: grayscale(1); }
+        .card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .source-tag { font-size: 0.7rem; font-weight: 700; color: var(--primary); background: #eff6ff; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; }
+        .date { font-size: 0.75rem; color: #94a3b8; }
+        .card h3 { font-size: 1.03rem; margin: 0 0 10px 0; line-height: 1.4; }
+        .card p { font-size: 0.9rem; color: var(--text-light); line-height: 1.65; margin: 0 0 14px 0; flex: 1; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-footer { border-top: 1px solid #f1f5f9; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .action-btn { background: none; border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; color: var(--text-light); cursor: pointer; }
+        .btn-primary { background: var(--text); color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; }
+        .video-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; font-size: 0.68rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+        .health-box { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
+        .health-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+        .health-table th, .health-table td { border-bottom: 1px solid #f1f5f9; padding: 8px 6px; text-align: left; vertical-align: top; }
+        .health-table th { color: #64748b; font-weight: 700; }
+        .error-cell { max-width: 420px; color: #ef4444; word-break: break-all; }
+    </style>
+    
+    </head>
+    <body>
+        <aside class='sidebar'>
+            <div class='logo'>🚀 SEO Intelligence Monitor</div>
+            <div class='nav-group'>
+                <div class='nav-title'>分类导航</div>
+                <a href='#SEO 动态' class='nav-item'>🔍 SEO 动态</a><a href='#GEO 趋势' class='nav-item'>🌐 GEO 趋势</a><a href='#AI 搜索' class='nav-item'>🤖 AI 搜索</a><a href='#国内资讯' class='nav-item'>🇨🇳 国内资讯</a><a href='#X 社交动态' class='nav-item'>𝕏 X 社交动态</a>
+            </div>
+            <div class='nav-group'>
+                <div class='nav-title'>社交入口</div>
+                <a href='https://x.com/Aleyda' target='_blank' class='nav-item'>𝕏 Aleyda Solis</a>
+                <a href='https://x.com/lilyraynyc' target='_blank' class='nav-item'>𝕏 Lily Ray</a>
+                <a href='https://x.com/zarazhangrui' target='_blank' class='nav-item'>𝕏 Zara Zhang</a>
+            </div>
+        </aside>
+        <main class='main'>
+            <div class='header'>
+                <div class='page-title'>SEO / GEO / AI Search 情报看板</div>
+                <div class='filters'>
+                    <button class='filter-btn' data-days='3'>3 Days</button>
+                    <button class='filter-btn active' data-days='7'>7 Days</button>
+                    <button class='filter-btn' data-days='30'>30 Days</button>
+                </div>
+            </div>
+            <section class='insights-box'>
+                <div class='box-header'>⚡ 本周重点摘要</div>
+                
+            <div class='insight-row'>
+                <div class='insight-label'>𝕏 X 社交动态</div>
+                <div class='insight-content'>本期重点：<a href='https://x.com/Aleyda' target='_blank'>Aleyda Solis (X) 最新动态入口</a>；<a href='https://x.com/lilyraynyc' target='_blank'>Lily Ray (X) 最新动态入口</a>；<a href='https://x.com/zarazhangrui' target='_blank'>Zara Zhang (X) 最新动态入口</a></div>
+            </div>
+            
+            </section>
+            <section class='health-box'>
+                <div class='box-header'>🩺 信源健康状态</div>
+                <table class='health-table'>
+                    <thead>
+                        <tr>
+                            <th>分类</th>
+                            <th>信源</th>
+                            <th>状态</th>
+                            <th>近7天条目</th>
+                            <th>错误信息</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+            <tr>
+                <td>SEO 动态</td>
+                <td>Google Search Central</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>SEO 动态</td>
+                <td>Search Engine Land</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>SEO 动态</td>
+                <td>SEO Roundtable</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>SEO 动态</td>
+                <td>Ahrefs Blog</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>SEO 动态</td>
+                <td>Backlinko</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>GEO 趋势</td>
+                <td>Search Engine Journal (AI Search)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>GEO 趋势</td>
+                <td>Perplexity Blog</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>GEO 趋势</td>
+                <td>Aleyda Solis</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>GEO 趋势</td>
+                <td>Onely (Tech SEO)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>AI 搜索</td>
+                <td>OpenAI News</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>AI 搜索</td>
+                <td>Google Blog (AI)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>AI 搜索</td>
+                <td>Microsoft Bing Blog</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>国内资讯</td>
+                <td>36Kr AI</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>国内资讯</td>
+                <td>机器之心</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>国内资讯</td>
+                <td>InfoQ AI</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>国内资讯</td>
+                <td>独立站与SEO艺术(订阅源占位)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>国内资讯</td>
+                <td>从0到AI(订阅源占位)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>X 社交动态</td>
+                <td>Aleyda Solis (X)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>X 社交动态</td>
+                <td>Lily Ray (X)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+            <tr>
+                <td>X 社交动态</td>
+                <td>Zara Zhang (X)</td>
+                <td>⚠️ 异常</td>
+                <td>0</td>
+                <td class='error-cell'>&lt;urlopen error Tunnel connection failed: 403 Forbidden&gt;</td>
+            </tr>
+            
+                    </tbody>
+                </table>
+            </section>
+            
+            <section class='category-section' id='SEO 动态'>
+                <div class='section-title'>
+                    <span>🔍 SEO 动态</span>
+                    <span style='font-size:0.78rem; color:#94a3b8;'>0 条</span>
+                </div>
+                <div class='grid'><div style='color:#94a3b8;'>暂无更新</div></div>
+            </section>
+            
+            <section class='category-section' id='GEO 趋势'>
+                <div class='section-title'>
+                    <span>🌐 GEO 趋势</span>
+                    <span style='font-size:0.78rem; color:#94a3b8;'>0 条</span>
+                </div>
+                <div class='grid'><div style='color:#94a3b8;'>暂无更新</div></div>
+            </section>
+            
+            <section class='category-section' id='AI 搜索'>
+                <div class='section-title'>
+                    <span>🤖 AI 搜索</span>
+                    <span style='font-size:0.78rem; color:#94a3b8;'>0 条</span>
+                </div>
+                <div class='grid'><div style='color:#94a3b8;'>暂无更新</div></div>
+            </section>
+            
+            <section class='category-section' id='国内资讯'>
+                <div class='section-title'>
+                    <span>🇨🇳 国内资讯</span>
+                    <span style='font-size:0.78rem; color:#94a3b8;'>0 条</span>
+                </div>
+                <div class='grid'><div style='color:#94a3b8;'>暂无更新</div></div>
+            </section>
+            
+            <section class='category-section' id='X 社交动态'>
+                <div class='section-title'>
+                    <span>𝕏 X 社交动态</span>
+                    <span style='font-size:0.78rem; color:#94a3b8;'>3 条</span>
+                </div>
+                <div class='grid'>
+    <article class='card card-item' id='f898d03ac72ac955' data-ts='1775469742'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Aleyda Solis (X)</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>Aleyda Solis (X) 最新动态入口</h3>
+        <p>当前未拉取到可用RSS条目，已提供该专家的X主页入口，便于你直接查看最新观点与实时讨论。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('f898d03ac72ac955', this)">Mark Read</button>
+            <a href='https://x.com/Aleyda' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='7c12ddc4dc15a808' data-ts='1775469742'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Lily Ray (X)</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>Lily Ray (X) 最新动态入口</h3>
+        <p>当前未拉取到可用RSS条目，已提供该专家的X主页入口，便于你直接查看最新观点与实时讨论。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('7c12ddc4dc15a808', this)">Mark Read</button>
+            <a href='https://x.com/lilyraynyc' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    
+    <article class='card card-item' id='aab71456f097c131' data-ts='1775469742'>
+        
+        <div class='card-meta'>
+            <span class='source-tag'>Zara Zhang (X)</span>
+            <span class='date'>2026-04-06</span>
+        </div>
+        <h3>Zara Zhang (X) 最新动态入口</h3>
+        <p>当前未拉取到可用RSS条目，已提供该专家的X主页入口，便于你直接查看最新观点与实时讨论。</p>
+        <div class='card-footer'>
+            <button class='action-btn btn-read' onclick="toggleRead('aab71456f097c131', this)">Mark Read</button>
+            <a href='https://x.com/zarazhangrui' target='_blank' class='btn-primary'>Read Full →</a>
+        </div>
+    </article>
+    </div>
+            </section>
+            
+        </main>
+        
+    <script>
+        let db = JSON.parse(localStorage.getItem('seo_dashboard_v6') || '{"read":[]}');
+        function save() { localStorage.setItem('seo_dashboard_v6', JSON.stringify(db)); }
+        function toggleRead(id, btn) {
+            if (!db.read.includes(id)) {
+                db.read.push(id);
+                const card = document.getElementById(id);
+                if (card) card.classList.add('is-read');
+                btn.innerText = '已读';
+                save();
+            }
+        }
+        function applyDaysFilter(days) {
+            const now = Math.floor(Date.now() / 1000);
+            document.querySelectorAll('.card-item').forEach(card => {
+                const ts = parseInt(card.dataset.ts);
+                const visible = (now - ts) <= (days * 86400);
+                card.style.display = visible ? 'flex' : 'none';
+            });
+        }
+        window.onload = () => {
+            db.read.forEach(id => {
+                const card = document.getElementById(id);
+                if (card) {
+                    card.classList.add('is-read');
+                    const btn = card.querySelector('.btn-read');
+                    if (btn) btn.innerText = '已读';
+                }
+            });
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    applyDaysFilter(parseInt(e.target.dataset.days));
+                });
+            });
+            applyDaysFilter(7);
+        };
+    </script>
+    
+    </body>
+    </html>
