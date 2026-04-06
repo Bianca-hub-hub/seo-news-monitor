@@ -1,0 +1,50 @@
+name: Update SEO/GEO News
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 每天北京时间 08:00 运行（UTC 时间为前一天 00:00）
+    - cron: "0 0 * * *"
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    env:
+      # 可改为 gh-pages，如果你想发布到 gh-pages 分支
+      TARGET_BRANCH: main
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      # 可选：如果你有代理/网关可在 Secrets 里配置
+      OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+      OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run crawler and generate index.html
+        run: python main.py
+
+      - name: Commit and push changes
+        run: |
+          git add index.html
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: auto update SEO/GEO news dashboard"
+          git push origin HEAD:${TARGET_BRANCH}
