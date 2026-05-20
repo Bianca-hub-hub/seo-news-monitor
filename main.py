@@ -23,7 +23,8 @@ CATEGORY_META = {
 
 RSS_SOURCES = {
     "SEO 动态": {
-        "Google Search Central": "https://developers.google.com/search/blog/rss.xml",
+        # feedburner 代理的官方 Google Search Central feed
+        "Google Search Central": "https://feeds.feedburner.com/blogspot/amDG",
         "Search Engine Land":    "https://searchengineland.com/feed",
         "SEO Roundtable":        "https://www.seroundtable.com/rss.xml",
         "Ahrefs Blog":           "https://ahrefs.com/blog/feed/",
@@ -35,14 +36,18 @@ RSS_SOURCES = {
         "Search Engine Journal": "https://www.searchenginejournal.com/feed/",
         "Aleyda Solis Blog":     "https://www.aleydasolis.com/en/blog/feed/",
         "Onely Tech SEO":        "https://www.onely.com/blog/feed/",
-        "Perplexity Blog":       "https://blog.perplexity.ai/rss",
-        "BrightEdge Blog":       "https://www.brightedge.com/blog/feed/",
+        # Perplexity 无公开 RSS，替换为 Wired AI
+        "Wired AI":              "https://www.wired.com/feed/tag/ai/latest/rss",
+        # BrightEdge 无公开 RSS，替换为 Search Engine Watch
+        "Search Engine Watch":   "https://www.searchenginewatch.com/feed/",
     },
     "AI 搜索": {
         "OpenAI News":           "https://openai.com/news/rss.xml",
         "Google AI Blog":        "https://blog.google/technology/ai/rss/",
-        "Anthropic News":        "https://www.anthropic.com/news/rss.xml",
-        "The Verge AI":          "https://www.theverge.com/ai-artificial-intelligence/rss/index.xml",
+        # Anthropic 无官方 RSS，使用社区维护的抓取 feed
+        "Anthropic News":        "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_news.xml",
+        # The Verge AI 正确 URL
+        "The Verge AI":          "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
         "MIT Technology Review": "https://www.technologyreview.com/feed/",
     },
 }
@@ -317,12 +322,12 @@ def insight_rows(items):
 
 
 def health_rows(source_health):
-    """Only show sources that fetched items (ok/warning) or have errors — skip truly silent ones."""
+    """Only show sources that have fetched items (ok/warning) — hide empty/error/no-update ones."""
     out = []
     e = html.escape
     for s in source_health:
-        if s["state"] == "empty" and not s["error"]:
-            continue  # silently skip sources with no new items and no error
+        if s["state"] not in ("ok", "warning"):
+            continue  # only show sources that actually got content
         out.append(
             '<tr>'
             '<td class="td-muted">' + e(s["category"]) + '</td>'
@@ -333,7 +338,7 @@ def health_rows(source_health):
             '</tr>'
         )
     if not out:
-        return '<tr><td colspan="5" style="color:var(--dim);padding:12px 8px;font-size:12px">All sources healthy, no issues to report.</td></tr>'
+        return '<tr><td colspan="5" style="color:var(--dim);padding:12px 8px;font-size:12px">No sources fetched content in this window.</td></tr>'
     return "".join(out)
 
 
