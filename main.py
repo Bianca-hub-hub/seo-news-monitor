@@ -1,33 +1,32 @@
+import hashlib
+import html
 import os
 import re
-import html
-import hashlib
 from datetime import datetime, timedelta
 
 import feedparser
+import requests
 
 try:
     from openai import OpenAI
 except Exception:
     OpenAI = None
 
-# ==========================================
-# 1) 监控分类与信源
-# ==========================================
+
 CATEGORY_ORDER = [
     "SEO 动态",
     "GEO 趋势",
     "AI 搜索",
     "国内资讯",
-    "X 社交动态",
+    "专家动态",
 ]
 
-CATEGORY_ICON = {
-    "SEO 动态": "🔍",
-    "GEO 趋势": "🌐",
-    "AI 搜索": "🤖",
-    "国内资讯": "🇨🇳",
-    "X 社交动态": "𝕏",
+CATEGORY_META = {
+    "SEO 动态": {"icon": "🔎", "slug": "seo", "accent": "#2563eb"},
+    "GEO 趋势": {"icon": "🌐", "slug": "geo", "accent": "#0891b2"},
+    "AI 搜索": {"icon": "🤖", "slug": "ai-search", "accent": "#7c3aed"},
+    "国内资讯": {"icon": "CN", "slug": "china", "accent": "#dc2626"},
+    "专家动态": {"icon": "𝕏", "slug": "experts", "accent": "#111827"},
 }
 
 RSS_SOURCES = {
@@ -39,32 +38,50 @@ RSS_SOURCES = {
         "Backlinko": "https://backlinko.com/feed/",
     },
     "GEO 趋势": {
-        "Search Engine Journal (AI Search)": "https://www.searchenginejournal.com/category/artificial-intelligence/feed/",
-        "Perplexity Blog": "https://www.perplexity.ai/hub/blog/rss.xml",
-        "Aleyda Solis": "https://www.aleydasolis.com/en/blog/feed/",
-        "Onely (Tech SEO)": "https://onely.com/blog/feed/",
+        "Search Engine Journal": "https://www.searchenginejournal.com/feed/",
+        "Aleyda Solis Blog": "https://www.aleydasolis.com/en/blog/feed/",
+        "Onely Tech SEO": "https://www.onely.com/blog/feed/",
     },
     "AI 搜索": {
         "OpenAI News": "https://openai.com/news/rss.xml",
-        "Google Blog (AI)": "https://blog.google/technology/ai/rss/",
-        "Microsoft Bing Blog": "https://blogs.bing.com/search/rss.xml",
+        "Google AI Blog": "https://blog.google/technology/ai/rss/",
+        "Microsoft Bing Blog": "https://blogs.bing.com/search/feed",
     },
     "国内资讯": {
-        # 注：微信公众号通常无官方 RSS，优先通过可公开订阅源接入
-        "36Kr AI": "https://36kr.com/feed",
+        "36Kr": "https://36kr.com/feed",
         "机器之心": "https://www.jiqizhixin.com/rss",
         "InfoQ AI": "https://xie.infoq.cn/rss/ai",
-        # 公众号示例：建议后续替换为自建抓取接口或 RSSHub 私有部署
-        "独立站与SEO艺术(订阅源占位)": "https://rsshub.app/wechat/placeholder_dulizhan_seo",
-        "从0到AI(订阅源占位)": "https://rsshub.app/wechat/placeholder_from0toai",
-    },
-    "X 社交动态": {
-        # 使用 RSS 订阅桥接（可替换为你自建的更稳定镜像）
-        "Aleyda Solis (X)": "https://rsshub.app/twitter/user/Aleyda",
-        "Lily Ray (X)": "https://rsshub.app/twitter/user/lilyraynyc",
-        "Zara Zhang (X)": "https://rsshub.app/twitter/user/zarazhangrui",
     },
 }
+
+EXPERT_PROFILES = [
+    {
+        "name": "Aleyda Solis",
+        "title": "Aleyda Solis 最新观点入口",
+        "url": "https://x.com/Aleyda",
+        "note": "国际 SEO 顾问，适合跟踪技术 SEO、国际化 SEO 与 AI Search 相关讨论。",
+    },
+    {
+        "name": "Lily Ray",
+        "title": "Lily Ray 最新观点入口",
+        "url": "https://x.com/lilyraynyc",
+        "note": "关注 Google 更新、内容质量、E-E-A-T 与搜索可见性变化。",
+    },
+    {
+        "name": "Zara Zhang",
+        "title": "Zara Zhang 最新观点入口",
+        "url": "https://x.com/zarazhangrui",
+        "note": "适合关注 AI 产品、全球科技趋势与中文语境下的 AI 讨论。",
+    },
+]
+
+WINDOW_DAYS = int(os.environ.get("WINDOW_DAYS", "14"))
+MAX_ITEMS_PER_SOURCE = int(os.environ.get("MAX_ITEMS_PER_SOURCE", "12"))
+REQUEST_TIMEOUT = int(os.environ.get("REQUEST_TIMEOUT", "20"))
+USER_AGENT = (
+    "Mozilla/5.0 (compatible; SEO-News-Monitor/2.0; "
+    "+https://github.com/Bianca-hub-hub/seo-news-monitor)"
+)
 
 
 def normalize_text(raw):
@@ -72,22 +89,34 @@ def normalize_text(raw):
         return ""
     if isinstance(raw, list):
         raw = raw[0].get("value", "")
-    text = re.sub("<.*?>", "", str(raw))
+    text = re.sub(r"<[^>]+>", " ", str(raw))
     text = html.unescape(text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
 
+def strip_invalid_xml_chars(text):
+    return re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", "", text)
+
+
+def compact_error(error):
+    if not error:
+        return ""
+    text = re.sub(r"\s+", " ", str(error)).strip()
+    return text[:160]
+
+
 def fallback_cn_summary(item, target_len=120):
     base = normalize_text(item.get("raw_summary", "")) or item["title"]
     source = item["source"]
-    prefix = f"来自{source}："
-    body_limit = max(60, target_len - len(prefix))
-    body = base[:body_limit]
-    tail = "。点击卡片可查看原文。" if not body.endswith(("。", "！", "？")) else "点击卡片可查看原文。"
-    summary = f"{prefix}{body}{tail}"
-    if len(summary) < 100:
-        summary += "该信息已纳入本期监测清单，用于跟踪SEO、GEO与AI搜索相关变化。"
+    prefix = f"来自 {source}："
+    body_limit = max(42, target_len - len(prefix) - 18)
+    body = base[:body_limit].rstrip("，,；;。 ")
+    if not body:
+        body = item["title"]
+    summary = f"{prefix}{body}。"
+    if len(summary) < 72:
+        summary += "可作为本期 SEO、GEO 或 AI 搜索变化的观察线索。"
     return summary[:150]
 
 
@@ -95,50 +124,70 @@ def build_ai_client():
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key or OpenAI is None:
         return None
-    base_url = (os.environ.get("OPENAI_BASE_URL") or "https://free.aipro.love/v1").strip()
-    return OpenAI(api_key=api_key, base_url=base_url)
+    base_url = os.environ.get("OPENAI_BASE_URL")
+    if base_url:
+        return OpenAI(api_key=api_key, base_url=base_url.strip())
+    return OpenAI(api_key=api_key)
 
 
 def generate_ai_summary(client, item):
     if client is None:
         return fallback_cn_summary(item)
 
-    model = "claude-3-5-sonnet"
+    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
     raw = normalize_text(item.get("raw_summary", ""))[:1200]
     prompt = (
-        "你是SEO与DTC家具行业研究编辑。请从SEO增长、内容策略、"
-        "搜索流量获取、家具垂类转化机会的视角总结下列资讯。"
-        "输出100-150字中文精简摘要，信息密度高、可执行、无营销话术，"
-        "只输出纯文本，不要使用项目符号。\n\n"
+        "你是中文 SEO 情报编辑。请从 SEO 增长、内容策略、搜索流量获取、"
+        "AI Search/GEO 影响的视角，总结下面这条资讯。"
+        "输出 80-140 字中文摘要，信息密度高、可执行，不要列表，不要营销话术。\n\n"
         f"来源：{item['source']}\n"
         f"分类：{item['category']}\n"
         f"标题：{item['title']}\n"
-        f"正文片段：{raw or '无正文片段'}\n"
+        f"正文片段：{raw or '无正文片段'}"
     )
     try:
         resp = client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", "content": "你是严谨的中文SEO策略编辑。"},
+                {"role": "system", "content": "你是严谨、克制、实用的中文 SEO 策略编辑。"},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.2,
         )
-        text = (resp.choices[0].message.content or "").strip()
-        text = re.sub(r"\s+", "", text)
-        if len(text) < 95 or len(text) > 170:
-            return None
-        return text[:150]
-    except Exception as e:
-        print(f"[WARN] AI summary failed: {item['title'][:60]} -> {e}")
-        return None
+        text = normalize_text(resp.choices[0].message.content or "")
+        if 40 <= len(text) <= 180:
+            return text[:160]
+    except Exception as exc:
+        print(f"[WARN] AI summary failed: {item['title'][:70]} -> {exc}")
+    return fallback_cn_summary(item)
 
 
-def parse_entry_date(entry, now):
+def parse_entry_date(entry, fallback):
     dt = entry.get("published_parsed") or entry.get("updated_parsed")
     if dt:
-        return datetime(*dt[:6])
-    return now
+        try:
+            return datetime(*dt[:6])
+        except Exception:
+            return fallback
+    return fallback
+
+
+def fetch_feed(url):
+    response = requests.get(
+        url,
+        headers={
+            "User-Agent": USER_AGENT,
+            "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
+        },
+        timeout=REQUEST_TIMEOUT,
+    )
+    response.raise_for_status()
+    content_type = response.headers.get("content-type", "")
+    encoding = response.encoding or response.apparent_encoding or "utf-8"
+    text = response.content.decode(encoding, errors="replace")
+    text = strip_invalid_xml_chars(text)
+    feed = feedparser.parse(text)
+    return feed, content_type
 
 
 def parse_feed_items(category, source, url, time_limit):
@@ -147,22 +196,24 @@ def parse_feed_items(category, source, url, time_limit):
         "category": category,
         "source": source,
         "url": url,
-        "ok": False,
+        "state": "error",
         "count": 0,
         "error": "",
     }
+    now = datetime.now()
     try:
-        feed = feedparser.parse(url, agent="Mozilla/5.0 (Macintosh; Intel Mac OS X)")
+        feed, content_type = fetch_feed(url)
+        bozo_error = ""
         if getattr(feed, "bozo", False) and getattr(feed, "bozo_exception", None):
-            status["error"] = str(feed.bozo_exception)[:120]
-        now = datetime.now()
-        for entry in feed.entries:
-            p_date = parse_entry_date(entry, now)
-            if p_date < time_limit:
+            bozo_error = compact_error(feed.bozo_exception)
+
+        for entry in feed.entries[:MAX_ITEMS_PER_SOURCE * 3]:
+            published_at = parse_entry_date(entry, now)
+            if published_at < time_limit:
                 continue
             link = (entry.get("link") or "").strip()
-            title = (entry.get("title") or "Untitled").strip()
-            if not link:
+            title = normalize_text(entry.get("title") or "Untitled")
+            if not link or not title:
                 continue
             uid_seed = f"{category}|{source}|{link}"
             uid = hashlib.md5(uid_seed.encode("utf-8")).hexdigest()[:16]
@@ -173,296 +224,52 @@ def parse_feed_items(category, source, url, time_limit):
                     "source": source,
                     "title": title,
                     "link": link,
-                    "ts": int(p_date.timestamp()),
-                    "date_str": p_date.strftime("%Y-%m-%d"),
+                    "ts": int(published_at.timestamp()),
+                    "date_str": published_at.strftime("%Y-%m-%d"),
                     "raw_summary": entry.get("summary") or entry.get("description", ""),
-                    "is_video": "youtube" in url.lower(),
+                    "is_video": "youtube" in link.lower() or "video" in normalize_text(entry.get("tags", "")).lower(),
                 }
             )
+            if len(results) >= MAX_ITEMS_PER_SOURCE:
+                break
+
         status["count"] = len(results)
-        status["ok"] = len(results) > 0 and not status["error"]
-    except Exception as e:
-        status["error"] = str(e)[:120]
-        print(f"[WARN] fetch failed: {source} -> {e}")
+        if results and bozo_error:
+            status["state"] = "warning"
+            status["error"] = bozo_error
+        elif results:
+            status["state"] = "ok"
+        else:
+            status["state"] = "empty"
+            status["error"] = bozo_error or f"未发现近 {WINDOW_DAYS} 天内的条目；content-type: {content_type or 'unknown'}"
+    except Exception as exc:
+        status["error"] = compact_error(exc)
+        print(f"[WARN] fetch failed: {source} -> {exc}")
     return results, status
 
 
-def inject_x_fallback_cards(all_data, time_limit):
-    has_x = any(i["category"] == "X 社交动态" for i in all_data)
-    if has_x:
-        return
+def inject_expert_cards(all_data):
     now = datetime.now()
-    if now < time_limit:
-        return
-    fallback_profiles = {
-        "Aleyda Solis (X)": "https://x.com/Aleyda",
-        "Lily Ray (X)": "https://x.com/lilyraynyc",
-        "Zara Zhang (X)": "https://x.com/zarazhangrui",
-    }
-    for source, link in fallback_profiles.items():
-        uid = hashlib.md5(f"x-fallback-{source}".encode("utf-8")).hexdigest()[:16]
+    for profile in EXPERT_PROFILES:
+        uid = hashlib.md5(f"expert-{profile['url']}".encode("utf-8")).hexdigest()[:16]
         all_data.append(
             {
                 "id": uid,
-                "category": "X 社交动态",
-                "source": source,
-                "title": f"{source} 最新动态入口",
-                "link": link,
+                "category": "专家动态",
+                "source": profile["name"],
+                "title": profile["title"],
+                "link": profile["url"],
                 "ts": int(now.timestamp()),
                 "date_str": now.strftime("%Y-%m-%d"),
-                "raw_summary": "当前未拉取到可用RSS条目，已提供个人主页作为动态入口。",
-                "summary": "当前未拉取到可用RSS条目，已提供该专家的X主页入口，便于你直接查看最新观点与实时讨论。",
+                "raw_summary": profile["note"],
+                "summary": profile["note"],
                 "is_video": False,
             }
         )
 
 
-def build_weekly_insights(items):
-    by_cat = {cat: [] for cat in CATEGORY_ORDER}
-    for item in items[:40]:
-        by_cat[item["category"]].append(item)
-
-    blocks = []
-    for cat in CATEGORY_ORDER:
-        if not by_cat[cat]:
-            continue
-        picks = by_cat[cat][:3]
-        links = "；".join(
-            [f"<a href='{p['link']}' target='_blank'>{html.escape(p['title'])}</a>" for p in picks]
-        )
-        blocks.append(
-            f"""
-            <div class='insight-row'>
-                <div class='insight-label'>{CATEGORY_ICON.get(cat, "⚡")} {cat}</div>
-                <div class='insight-content'>本期重点：{links}</div>
-            </div>
-            """
-        )
-    return "".join(blocks)
-
-
-def build_card_html(item):
-    video_tag = "<div class='video-badge'>▶ VIDEO</div>" if item["is_video"] else ""
-    return f"""
-    <article class='card card-item' id='{item['id']}' data-ts='{item['ts']}'>
-        {video_tag}
-        <div class='card-meta'>
-            <span class='source-tag'>{html.escape(item['source'])}</span>
-            <span class='date'>{item['date_str']}</span>
-        </div>
-        <h3>{html.escape(item['title'])}</h3>
-        <p>{html.escape(item['summary'])}</p>
-        <div class='card-footer'>
-            <button class='action-btn btn-read' onclick="toggleRead('{item['id']}', this)">Mark Read</button>
-            <a href='{item['link']}' target='_blank' class='btn-primary'>Read Full →</a>
-        </div>
-    </article>
-    """
-
-
-def build_health_table(source_health):
-    rows = []
-    for item in source_health:
-        badge = "✅ 正常" if item["ok"] else "⚠️ 异常"
-        count = item["count"]
-        err = html.escape(item["error"] or "-")
-        rows.append(
-            f"""
-            <tr>
-                <td>{html.escape(item['category'])}</td>
-                <td>{html.escape(item['source'])}</td>
-                <td>{badge}</td>
-                <td>{count}</td>
-                <td class='error-cell'>{err}</td>
-            </tr>
-            """
-        )
-    return "".join(rows)
-
-
-def render_dashboard(all_data, source_health):
-    style = """
-    <style>
-        :root { --sidebar-w: 280px; --bg: #f4f6f8; --card-bg: #ffffff; --primary: #2563eb; --text: #1e293b; --text-light: #64748b; }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: var(--sidebar-w); background: #fff; border-right: 1px solid #e2e8f0; padding: 24px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 24px; }
-        .nav-group { margin-bottom: 20px; }
-        .nav-title { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; }
-        .nav-item { display: block; padding: 10px 12px; color: var(--text-light); text-decoration: none; border-radius: 8px; font-size: 0.92rem; margin-bottom: 4px; }
-        .nav-item:hover { background: #eff6ff; color: var(--primary); }
-        .main { flex: 1; overflow-y: auto; padding: 28px 36px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
-        .page-title { font-size: 1.5rem; font-weight: 700; }
-        .filters { display: flex; gap: 8px; background: #e2e8f0; padding: 4px; border-radius: 8px; }
-        .filter-btn { border: none; background: none; padding: 6px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: var(--text-light); cursor: pointer; }
-        .filter-btn.active { background: #fff; color: var(--text); }
-        .insights-box { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
-        .box-header { font-size: 1.05rem; font-weight: 700; margin-bottom: 16px; }
-        .insight-row { margin-bottom: 12px; font-size: 0.92rem; line-height: 1.6; border-bottom: 1px dashed #f1f5f9; padding-bottom: 12px; }
-        .insight-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .insight-label { color: var(--primary); font-weight: 700; margin-bottom: 4px; }
-        .insight-content a { color: var(--text); text-decoration: none; border-bottom: 1px solid #cbd5e1; }
-        .insight-content a:hover { color: var(--primary); border-color: var(--primary); }
-        .category-section { margin-bottom: 28px; }
-        .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
-        .card { background: #fff; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; position: relative; }
-        .card:hover { border-color: var(--primary); box-shadow: 0 8px 16px rgba(0,0,0,0.06); }
-        .card.is-read { opacity: 0.62; filter: grayscale(1); }
-        .card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .source-tag { font-size: 0.7rem; font-weight: 700; color: var(--primary); background: #eff6ff; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; }
-        .date { font-size: 0.75rem; color: #94a3b8; }
-        .card h3 { font-size: 1.03rem; margin: 0 0 10px 0; line-height: 1.4; }
-        .card p { font-size: 0.9rem; color: var(--text-light); line-height: 1.65; margin: 0 0 14px 0; flex: 1; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-        .card-footer { border-top: 1px solid #f1f5f9; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .action-btn { background: none; border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; color: var(--text-light); cursor: pointer; }
-        .btn-primary { background: var(--text); color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; }
-        .video-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; font-size: 0.68rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
-        .health-box { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
-        .health-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
-        .health-table th, .health-table td { border-bottom: 1px solid #f1f5f9; padding: 8px 6px; text-align: left; vertical-align: top; }
-        .health-table th { color: #64748b; font-weight: 700; }
-        .error-cell { max-width: 420px; color: #ef4444; word-break: break-all; }
-    </style>
-    """
-
-    js = """
-    <script>
-        let db = JSON.parse(localStorage.getItem('seo_dashboard_v6') || '{"read":[]}');
-        function save() { localStorage.setItem('seo_dashboard_v6', JSON.stringify(db)); }
-        function toggleRead(id, btn) {
-            if (!db.read.includes(id)) {
-                db.read.push(id);
-                const card = document.getElementById(id);
-                if (card) card.classList.add('is-read');
-                btn.innerText = '已读';
-                save();
-            }
-        }
-        function applyDaysFilter(days) {
-            const now = Math.floor(Date.now() / 1000);
-            document.querySelectorAll('.card-item').forEach(card => {
-                const ts = parseInt(card.dataset.ts);
-                const visible = (now - ts) <= (days * 86400);
-                card.style.display = visible ? 'flex' : 'none';
-            });
-        }
-        window.onload = () => {
-            db.read.forEach(id => {
-                const card = document.getElementById(id);
-                if (card) {
-                    card.classList.add('is-read');
-                    const btn = card.querySelector('.btn-read');
-                    if (btn) btn.innerText = '已读';
-                }
-            });
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    applyDaysFilter(parseInt(e.target.dataset.days));
-                });
-            });
-            applyDaysFilter(7);
-        };
-    </script>
-    """
-
-    nav_links = "".join(
-        [f"<a href='#{cat}' class='nav-item'>{CATEGORY_ICON.get(cat, '⚡')} {cat}</a>" for cat in CATEGORY_ORDER]
-    )
-
-    insights_html = build_weekly_insights(all_data)
-    health_html = build_health_table(source_health)
-
-    groups = {cat: [] for cat in CATEGORY_ORDER}
-    for item in all_data:
-        groups[item["category"]].append(item)
-
-    sections = []
-    for cat in CATEGORY_ORDER:
-        cards = "".join(build_card_html(item) for item in groups[cat][:40])
-        sections.append(
-            f"""
-            <section class='category-section' id='{cat}'>
-                <div class='section-title'>
-                    <span>{CATEGORY_ICON.get(cat, "⚡")} {cat}</span>
-                    <span style='font-size:0.78rem; color:#94a3b8;'>{len(groups[cat])} 条</span>
-                </div>
-                <div class='grid'>{cards or "<div style='color:#94a3b8;'>暂无更新</div>"}</div>
-            </section>
-            """
-        )
-    sections_html = "".join(sections)
-
-    full_html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset='utf-8'>
-        <meta name='viewport' content='width=device-width, initial-scale=1'>
-        <title>SEO + GEO Intelligence Dashboard</title>
-        {style}
-    </head>
-    <body>
-        <aside class='sidebar'>
-            <div class='logo'>🚀 SEO Intelligence Monitor</div>
-            <div class='nav-group'>
-                <div class='nav-title'>分类导航</div>
-                {nav_links}
-            </div>
-            <div class='nav-group'>
-                <div class='nav-title'>社交入口</div>
-                <a href='https://x.com/Aleyda' target='_blank' class='nav-item'>𝕏 Aleyda Solis</a>
-                <a href='https://x.com/lilyraynyc' target='_blank' class='nav-item'>𝕏 Lily Ray</a>
-                <a href='https://x.com/zarazhangrui' target='_blank' class='nav-item'>𝕏 Zara Zhang</a>
-            </div>
-        </aside>
-        <main class='main'>
-            <div class='header'>
-                <div class='page-title'>SEO / GEO / AI Search 情报看板</div>
-                <div class='filters'>
-                    <button class='filter-btn' data-days='3'>3 Days</button>
-                    <button class='filter-btn active' data-days='7'>7 Days</button>
-                    <button class='filter-btn' data-days='30'>30 Days</button>
-                </div>
-            </div>
-            <section class='insights-box'>
-                <div class='box-header'>⚡ 本周重点摘要</div>
-                {insights_html or "<div class='insight-row'>暂无足够数据生成摘要...</div>"}
-            </section>
-            <section class='health-box'>
-                <div class='box-header'>🩺 信源健康状态</div>
-                <table class='health-table'>
-                    <thead>
-                        <tr>
-                            <th>分类</th>
-                            <th>信源</th>
-                            <th>状态</th>
-                            <th>近7天条目</th>
-                            <th>错误信息</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {health_html}
-                    </tbody>
-                </table>
-            </section>
-            {sections_html}
-        </main>
-        {js}
-    </body>
-    </html>
-    """
-
-    with open("index.html", "w", encoding="utf-8") as f:
-        f.write(full_html)
-
-
-def fetch_data():
-    now = datetime.now()
-    time_limit = now - timedelta(days=7)
+def collect_data():
+    time_limit = datetime.now() - timedelta(days=WINDOW_DAYS)
     all_data = []
     source_health = []
 
@@ -472,37 +279,401 @@ def fetch_data():
             all_data.extend(items)
             source_health.append(status)
 
-    # 去重（同链接只保留最新）
     unique_by_link = {}
     for item in sorted(all_data, key=lambda x: x["ts"], reverse=True):
         if item["link"] not in unique_by_link:
             unique_by_link[item["link"]] = item
     all_data = list(unique_by_link.values())
 
-    inject_x_fallback_cards(all_data, time_limit)
-
-    ai_client = build_ai_client()
+    client = build_ai_client()
     final_items = []
     for item in all_data:
-        if item.get("summary"):
-            final_items.append(item)
-            continue
-
-        if ai_client is None:
-            item["summary"] = fallback_cn_summary(item)
-            final_items.append(item)
-            continue
-
-        summary = generate_ai_summary(ai_client, item)
-        if summary is None:
-            # 按需跳过AI失败条目，避免整批任务中断
-            continue
-        item["summary"] = summary
+        item["summary"] = item.get("summary") or generate_ai_summary(client, item)
         final_items.append(item)
 
+    inject_expert_cards(final_items)
     final_items.sort(key=lambda x: x["ts"], reverse=True)
-    render_dashboard(final_items, source_health)
-    print(f"[OK] Generated index.html with {len(final_items)} items")
+    return final_items, source_health
+
+
+def status_label(state):
+    labels = {
+        "ok": ("正常", "status-ok"),
+        "warning": ("有警告", "status-warning"),
+        "empty": ("无新内容", "status-empty"),
+        "error": ("异常", "status-error"),
+    }
+    return labels.get(state, ("未知", "status-error"))
+
+
+def item_card(item):
+    meta = CATEGORY_META[item["category"]]
+    video = "<span class='badge danger'>VIDEO</span>" if item["is_video"] else ""
+    return f"""
+    <article class="news-card card-item" id="{item['id']}" data-ts="{item['ts']}" data-category="{html.escape(item['category'])}">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:{meta['accent']}">{html.escape(item['source'])}</span>
+            <span class="date">{item['date_str']}</span>
+        </div>
+        <h3><a href="{html.escape(item['link'])}" target="_blank" rel="noopener noreferrer">{html.escape(item['title'])}</a></h3>
+        <p>{html.escape(item['summary'])}</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('{item['id']}', this)">标记已读</button>
+            <a class="read-link" href="{html.escape(item['link'])}" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            {video}
+        </div>
+    </article>
+    """
+
+
+def category_section(category, items):
+    meta = CATEGORY_META[category]
+    cards = "".join(item_card(item) for item in items[:60])
+    empty = "<div class='empty-state'>这段时间没有抓到新内容。</div>"
+    return f"""
+    <section class="category-section" id="{meta['slug']}">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker" style="color:{meta['accent']}">{meta['icon']} {category}</span>
+                <h2>{category}</h2>
+            </div>
+            <span class="count">{len(items)} 条</span>
+        </div>
+        <div class="news-grid">{cards or empty}</div>
+    </section>
+    """
+
+
+def insight_rows(items):
+    rows = []
+    for category in CATEGORY_ORDER:
+        picks = [item for item in items if item["category"] == category][:3]
+        if not picks:
+            continue
+        links = "".join(
+            f"<a href='{html.escape(item['link'])}' target='_blank' rel='noopener noreferrer'>{html.escape(item['title'])}</a>"
+            for item in picks
+        )
+        meta = CATEGORY_META[category]
+        rows.append(
+            f"""
+            <div class="insight-row">
+                <div class="insight-icon" style="background:{meta['accent']}">{meta['icon']}</div>
+                <div>
+                    <div class="insight-title">{category}</div>
+                    <div class="insight-links">{links}</div>
+                </div>
+            </div>
+            """
+        )
+    return "".join(rows)
+
+
+def health_rows(source_health):
+    rows = []
+    for item in source_health:
+        label, klass = status_label(item["state"])
+        rows.append(
+            f"""
+            <tr>
+                <td>{html.escape(item['category'])}</td>
+                <td><a href="{html.escape(item['url'])}" target="_blank" rel="noopener noreferrer">{html.escape(item['source'])}</a></td>
+                <td><span class="status {klass}">{label}</span></td>
+                <td>{item['count']}</td>
+                <td class="error-cell">{html.escape(item['error'] or "-")}</td>
+            </tr>
+            """
+        )
+    return "".join(rows)
+
+
+def render_dashboard(all_data, source_health):
+    grouped = {category: [] for category in CATEGORY_ORDER}
+    for item in all_data:
+        grouped[item["category"]].append(item)
+
+    total = len(all_data)
+    active_sources = sum(1 for source in source_health if source["state"] in {"ok", "warning"})
+    warning_sources = sum(1 for source in source_health if source["state"] in {"warning", "error"})
+    latest_date = max((item["date_str"] for item in all_data), default="-")
+    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    nav_links = "".join(
+        f"<a href='#{CATEGORY_META[cat]['slug']}'>{CATEGORY_META[cat]['icon']}<span>{cat}</span><strong>{len(grouped[cat])}</strong></a>"
+        for cat in CATEGORY_ORDER
+    )
+    sections = "".join(category_section(category, grouped[category]) for category in CATEGORY_ORDER)
+
+    full_html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SEO / GEO / AI Search 情报站</title>
+    <style>
+        :root {{
+            --bg: #f6f7f9;
+            --panel: #ffffff;
+            --text: #172033;
+            --muted: #667085;
+            --line: #e4e7ec;
+            --ink: #111827;
+            --blue: #2563eb;
+            --green: #059669;
+            --orange: #d97706;
+            --red: #dc2626;
+            --shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+        }}
+        * {{ box-sizing: border-box; }}
+        html {{ scroll-behavior: smooth; }}
+        body {{
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", Arial, sans-serif;
+            letter-spacing: 0;
+        }}
+        a {{ color: inherit; }}
+        .layout {{ display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }}
+        .sidebar {{
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            background: #fff;
+            border-right: 1px solid var(--line);
+            padding: 24px 18px;
+        }}
+        .brand {{ display: flex; gap: 10px; align-items: center; margin-bottom: 28px; }}
+        .brand-mark {{ width: 34px; height: 34px; border-radius: 8px; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 800; }}
+        .brand-title {{ font-weight: 800; line-height: 1.2; }}
+        .brand-subtitle {{ color: var(--muted); font-size: 12px; margin-top: 3px; }}
+        .nav-label {{ color: #98a2b3; font-size: 12px; font-weight: 700; margin: 24px 8px 10px; }}
+        .nav a {{
+            display: grid;
+            grid-template-columns: 26px 1fr auto;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 8px;
+            border-radius: 8px;
+            color: #475467;
+            text-decoration: none;
+            font-size: 14px;
+        }}
+        .nav a:hover {{ background: #f2f4f7; color: var(--ink); }}
+        .nav strong {{ color: #98a2b3; font-size: 12px; }}
+        .main {{ padding: 30px 36px 48px; min-width: 0; }}
+        .hero {{
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 22px;
+            align-items: end;
+            margin-bottom: 22px;
+        }}
+        .eyebrow {{ color: var(--blue); font-size: 13px; font-weight: 800; margin-bottom: 8px; }}
+        h1 {{ margin: 0; font-size: 30px; line-height: 1.15; }}
+        .intro {{ margin: 10px 0 0; color: var(--muted); line-height: 1.7; max-width: 760px; }}
+        .toolbar {{ display: flex; gap: 10px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }}
+        .search {{
+            width: 260px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            padding: 10px 12px;
+            font-size: 14px;
+        }}
+        .segmented {{ display: flex; gap: 4px; background: #e9edf3; padding: 4px; border-radius: 8px; }}
+        .filter-btn {{
+            border: 0;
+            border-radius: 6px;
+            padding: 8px 12px;
+            background: transparent;
+            color: #475467;
+            cursor: pointer;
+            font-weight: 700;
+        }}
+        .filter-btn.active {{ background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08); }}
+        .stats {{ display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }}
+        .stat {{ background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }}
+        .stat-label {{ color: var(--muted); font-size: 13px; }}
+        .stat-value {{ font-size: 26px; font-weight: 800; margin-top: 6px; }}
+        .panel-grid {{ display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr); gap: 18px; align-items: start; margin-bottom: 28px; }}
+        .panel {{ background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px; box-shadow: var(--shadow); }}
+        .panel h2 {{ margin: 0 0 14px; font-size: 18px; }}
+        .insight-row {{ display: grid; grid-template-columns: 36px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid #f0f2f5; }}
+        .insight-row:first-of-type {{ border-top: 0; padding-top: 0; }}
+        .insight-icon {{ width: 36px; height: 36px; border-radius: 8px; color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 800; }}
+        .insight-title {{ font-weight: 800; margin-bottom: 5px; }}
+        .insight-links {{ display: flex; flex-wrap: wrap; gap: 8px; }}
+        .insight-links a {{ color: #344054; text-decoration: none; border-bottom: 1px solid #cfd6e1; line-height: 1.5; }}
+        .insight-links a:hover {{ color: var(--blue); border-color: var(--blue); }}
+        .health-table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+        .health-table th, .health-table td {{ padding: 8px 6px; border-top: 1px solid #f0f2f5; text-align: left; vertical-align: top; }}
+        .health-table th {{ color: var(--muted); font-size: 12px; }}
+        .status {{ display: inline-flex; border-radius: 999px; padding: 3px 8px; font-size: 12px; font-weight: 800; white-space: nowrap; }}
+        .status-ok {{ color: #067647; background: #ecfdf3; }}
+        .status-warning {{ color: #b54708; background: #fffaeb; }}
+        .status-empty {{ color: #475467; background: #f2f4f7; }}
+        .status-error {{ color: #b42318; background: #fef3f2; }}
+        .error-cell {{ max-width: 240px; color: #667085; word-break: break-word; }}
+        .category-section {{ margin-top: 30px; scroll-margin-top: 18px; }}
+        .section-heading {{ display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 14px; }}
+        .section-kicker {{ font-size: 13px; font-weight: 900; }}
+        .section-heading h2 {{ margin: 3px 0 0; font-size: 22px; }}
+        .count {{ color: var(--muted); font-size: 13px; font-weight: 700; }}
+        .news-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }}
+        .news-card {{ background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 16px; min-height: 238px; display: flex; flex-direction: column; }}
+        .news-card:hover {{ border-color: #b8c2d3; box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08); }}
+        .news-card.is-read {{ opacity: 0.56; }}
+        .card-top {{ display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }}
+        .source-pill {{ color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, white); border: 1px solid color-mix(in srgb, var(--accent) 18%, white); border-radius: 999px; padding: 4px 9px; font-size: 12px; font-weight: 800; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
+        .date {{ color: #98a2b3; font-size: 12px; white-space: nowrap; }}
+        .news-card h3 {{ margin: 0 0 10px; font-size: 17px; line-height: 1.45; }}
+        .news-card h3 a {{ text-decoration: none; }}
+        .news-card h3 a:hover {{ color: var(--blue); }}
+        .news-card p {{ margin: 0; color: #475467; line-height: 1.7; font-size: 14px; flex: 1; }}
+        .card-actions {{ display: flex; align-items: center; gap: 10px; border-top: 1px solid #f0f2f5; padding-top: 12px; margin-top: 14px; }}
+        .ghost-btn {{ border: 1px solid var(--line); background: #fff; color: #475467; border-radius: 6px; padding: 7px 10px; cursor: pointer; }}
+        .read-link {{ margin-left: auto; background: var(--ink); color: #fff; text-decoration: none; border-radius: 6px; padding: 7px 10px; font-weight: 700; font-size: 13px; }}
+        .badge.danger {{ color: #b42318; background: #fef3f2; border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 800; }}
+        .empty-state {{ border: 1px dashed #cfd6e1; border-radius: 8px; padding: 18px; color: var(--muted); background: #fff; }}
+        .footer-note {{ color: var(--muted); font-size: 12px; margin-top: 30px; }}
+        @media (max-width: 980px) {{
+            .layout {{ grid-template-columns: 1fr; }}
+            .sidebar {{ position: static; height: auto; }}
+            .nav {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+            .main {{ padding: 22px 16px 36px; }}
+            .hero, .panel-grid {{ grid-template-columns: 1fr; }}
+            .toolbar {{ justify-content: flex-start; }}
+            .stats {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+            .search {{ width: 100%; }}
+        }}
+        @media (max-width: 560px) {{
+            h1 {{ font-size: 25px; }}
+            .stats, .news-grid, .nav {{ grid-template-columns: 1fr; }}
+            .segmented {{ width: 100%; }}
+            .filter-btn {{ flex: 1; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">SEO</div>
+                <div>
+                    <div class="brand-title">SEO News Monitor</div>
+                    <div class="brand-subtitle">自动抓取 · 情报筛选 · 信源体检</div>
+                </div>
+            </div>
+            <div class="nav-label">分类导航</div>
+            <nav class="nav">{nav_links}</nav>
+            <div class="nav-label">专家入口</div>
+            <nav class="nav">
+                <a href="https://x.com/Aleyda" target="_blank" rel="noopener noreferrer"><span>𝕏</span><span>Aleyda Solis</span><strong></strong></a>
+                <a href="https://x.com/lilyraynyc" target="_blank" rel="noopener noreferrer"><span>𝕏</span><span>Lily Ray</span><strong></strong></a>
+                <a href="https://x.com/zarazhangrui" target="_blank" rel="noopener noreferrer"><span>𝕏</span><span>Zara Zhang</span><strong></strong></a>
+            </nav>
+        </aside>
+        <main class="main">
+            <header class="hero">
+                <div>
+                    <div class="eyebrow">SEO / GEO / AI SEARCH INTELLIGENCE</div>
+                    <h1>每天给自己看的搜索情报站</h1>
+                    <p class="intro">聚合你关心的海外 SEO、AI Search、GEO 与中文科技资讯。抓取失败会被记录，但不会再吞掉已经抓到的文章。</p>
+                </div>
+                <div class="toolbar">
+                    <input id="searchInput" class="search" type="search" placeholder="搜索标题、来源或摘要">
+                    <div class="segmented" aria-label="时间筛选">
+                        <button class="filter-btn" type="button" data-days="3">3天</button>
+                        <button class="filter-btn active" type="button" data-days="7">7天</button>
+                        <button class="filter-btn" type="button" data-days="{WINDOW_DAYS}">{WINDOW_DAYS}天</button>
+                    </div>
+                </div>
+            </header>
+            <section class="stats">
+                <div class="stat"><div class="stat-label">当前条目</div><div class="stat-value">{total}</div></div>
+                <div class="stat"><div class="stat-label">可用信源</div><div class="stat-value">{active_sources}</div></div>
+                <div class="stat"><div class="stat-label">需关注信源</div><div class="stat-value">{warning_sources}</div></div>
+                <div class="stat"><div class="stat-label">最近更新</div><div class="stat-value" style="font-size:18px">{latest_date}</div></div>
+            </section>
+            <section class="panel-grid">
+                <div class="panel">
+                    <h2>本期重点</h2>
+                    {insight_rows(all_data) or "<div class='empty-state'>暂时没有可展示的重点内容。</div>"}
+                </div>
+                <div class="panel">
+                    <h2>信源健康</h2>
+                    <table class="health-table">
+                        <thead><tr><th>分类</th><th>信源</th><th>状态</th><th>条目</th><th>说明</th></tr></thead>
+                        <tbody>{health_rows(source_health)}</tbody>
+                    </table>
+                </div>
+            </section>
+            {sections}
+            <div class="footer-note">生成时间：{generated_at}，窗口：近 {WINDOW_DAYS} 天。可在 GitHub Actions 手动运行或按计划自动更新。</div>
+        </main>
+    </div>
+    <script>
+        const storeKey = "seo_news_monitor_v2";
+        const state = JSON.parse(localStorage.getItem(storeKey) || '{{"read":[]}}');
+        const cards = Array.from(document.querySelectorAll(".card-item"));
+        const buttons = Array.from(document.querySelectorAll(".filter-btn"));
+        const searchInput = document.getElementById("searchInput");
+        let activeDays = 7;
+
+        function save() {{
+            localStorage.setItem(storeKey, JSON.stringify(state));
+        }}
+
+        function toggleRead(id, btn) {{
+            if (!state.read.includes(id)) state.read.push(id);
+            const card = document.getElementById(id);
+            if (card) card.classList.add("is-read");
+            btn.innerText = "已读";
+            save();
+        }}
+
+        function applyFilters() {{
+            const now = Math.floor(Date.now() / 1000);
+            const query = (searchInput.value || "").trim().toLowerCase();
+            cards.forEach(card => {{
+                const inWindow = (now - Number(card.dataset.ts)) <= activeDays * 86400;
+                const matches = !query || card.innerText.toLowerCase().includes(query);
+                card.style.display = inWindow && matches ? "flex" : "none";
+            }});
+        }}
+
+        state.read.forEach(id => {{
+            const card = document.getElementById(id);
+            if (!card) return;
+            card.classList.add("is-read");
+            const btn = card.querySelector(".btn-read");
+            if (btn) btn.innerText = "已读";
+        }});
+
+        buttons.forEach(btn => {{
+            btn.addEventListener("click", () => {{
+                buttons.forEach(item => item.classList.remove("active"));
+                btn.classList.add("active");
+                activeDays = Number(btn.dataset.days);
+                applyFilters();
+            }});
+        }});
+        searchInput.addEventListener("input", applyFilters);
+        applyFilters();
+    </script>
+</body>
+</html>
+"""
+
+    with open("index.html", "w", encoding="utf-8") as file:
+        file.write(full_html)
+
+
+def fetch_data():
+    all_data, source_health = collect_data()
+    render_dashboard(all_data, source_health)
+    print(f"[OK] Generated index.html with {len(all_data)} items")
 
 
 if __name__ == "__main__":

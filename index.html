@@ -1,390 +1,1489 @@
-
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset='utf-8'>
-        <meta name='viewport' content='width=device-width, initial-scale=1'>
-        <title>SEO + GEO Intelligence Dashboard</title>
-        
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SEO / GEO / AI Search 情报站</title>
     <style>
-        :root { --sidebar-w: 280px; --bg: #f4f6f8; --card-bg: #ffffff; --primary: #2563eb; --text: #1e293b; --text-light: #64748b; }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: var(--sidebar-w); background: #fff; border-right: 1px solid #e2e8f0; padding: 24px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 24px; }
-        .nav-group { margin-bottom: 20px; }
-        .nav-title { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; }
-        .nav-item { display: block; padding: 10px 12px; color: var(--text-light); text-decoration: none; border-radius: 8px; font-size: 0.92rem; margin-bottom: 4px; }
-        .nav-item:hover { background: #eff6ff; color: var(--primary); }
-        .main { flex: 1; overflow-y: auto; padding: 28px 36px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
-        .page-title { font-size: 1.5rem; font-weight: 700; }
-        .filters { display: flex; gap: 8px; background: #e2e8f0; padding: 4px; border-radius: 8px; }
-        .filter-btn { border: none; background: none; padding: 6px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: var(--text-light); cursor: pointer; }
-        .filter-btn.active { background: #fff; color: var(--text); }
-        .insights-box { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
-        .box-header { font-size: 1.05rem; font-weight: 700; margin-bottom: 16px; }
-        .insight-row { margin-bottom: 12px; font-size: 0.92rem; line-height: 1.6; border-bottom: 1px dashed #f1f5f9; padding-bottom: 12px; }
-        .insight-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .insight-label { color: var(--primary); font-weight: 700; margin-bottom: 4px; }
-        .insight-content a { color: var(--text); text-decoration: none; border-bottom: 1px solid #cbd5e1; }
-        .insight-content a:hover { color: var(--primary); border-color: var(--primary); }
-        .category-section { margin-bottom: 28px; }
-        .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
-        .card { background: #fff; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; position: relative; }
-        .card:hover { border-color: var(--primary); box-shadow: 0 8px 16px rgba(0,0,0,0.06); }
-        .card.is-read { opacity: 0.62; filter: grayscale(1); }
-        .card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .source-tag { font-size: 0.7rem; font-weight: 700; color: var(--primary); background: #eff6ff; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; }
-        .date { font-size: 0.75rem; color: #94a3b8; }
-        .card h3 { font-size: 1.03rem; margin: 0 0 10px 0; line-height: 1.4; }
-        .card p { font-size: 0.9rem; color: var(--text-light); line-height: 1.65; margin: 0 0 14px 0; flex: 1; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-        .card-footer { border-top: 1px solid #f1f5f9; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .action-btn { background: none; border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; color: var(--text-light); cursor: pointer; }
-        .btn-primary { background: var(--text); color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; }
-        .video-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; font-size: 0.68rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
-        .health-box { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
-        .health-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
-        .health-table th, .health-table td { border-bottom: 1px solid #f1f5f9; padding: 8px 6px; text-align: left; vertical-align: top; }
-        .health-table th { color: #64748b; font-weight: 700; }
-        .error-cell { max-width: 420px; color: #ef4444; word-break: break-all; }
+        :root {
+            --bg: #f6f7f9;
+            --panel: #ffffff;
+            --text: #172033;
+            --muted: #667085;
+            --line: #e4e7ec;
+            --ink: #111827;
+            --blue: #2563eb;
+            --green: #059669;
+            --orange: #d97706;
+            --red: #dc2626;
+            --shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", Arial, sans-serif;
+            letter-spacing: 0;
+        }
+        a { color: inherit; }
+        .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            background: #fff;
+            border-right: 1px solid var(--line);
+            padding: 24px 18px;
+        }
+        .brand { display: flex; gap: 10px; align-items: center; margin-bottom: 28px; }
+        .brand-mark { width: 34px; height: 34px; border-radius: 8px; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 800; }
+        .brand-title { font-weight: 800; line-height: 1.2; }
+        .brand-subtitle { color: var(--muted); font-size: 12px; margin-top: 3px; }
+        .nav-label { color: #98a2b3; font-size: 12px; font-weight: 700; margin: 24px 8px 10px; }
+        .nav a {
+            display: grid;
+            grid-template-columns: 26px 1fr auto;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 8px;
+            border-radius: 8px;
+            color: #475467;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .nav a:hover { background: #f2f4f7; color: var(--ink); }
+        .nav strong { color: #98a2b3; font-size: 12px; }
+        .main { padding: 30px 36px 48px; min-width: 0; }
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 22px;
+            align-items: end;
+            margin-bottom: 22px;
+        }
+        .eyebrow { color: var(--blue); font-size: 13px; font-weight: 800; margin-bottom: 8px; }
+        h1 { margin: 0; font-size: 30px; line-height: 1.15; }
+        .intro { margin: 10px 0 0; color: var(--muted); line-height: 1.7; max-width: 760px; }
+        .toolbar { display: flex; gap: 10px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+        .search {
+            width: 260px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+        .segmented { display: flex; gap: 4px; background: #e9edf3; padding: 4px; border-radius: 8px; }
+        .filter-btn {
+            border: 0;
+            border-radius: 6px;
+            padding: 8px 12px;
+            background: transparent;
+            color: #475467;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .filter-btn.active { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08); }
+        .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+        .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+        .stat-label { color: var(--muted); font-size: 13px; }
+        .stat-value { font-size: 26px; font-weight: 800; margin-top: 6px; }
+        .panel-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr); gap: 18px; align-items: start; margin-bottom: 28px; }
+        .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px; box-shadow: var(--shadow); }
+        .panel h2 { margin: 0 0 14px; font-size: 18px; }
+        .insight-row { display: grid; grid-template-columns: 36px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid #f0f2f5; }
+        .insight-row:first-of-type { border-top: 0; padding-top: 0; }
+        .insight-icon { width: 36px; height: 36px; border-radius: 8px; color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 800; }
+        .insight-title { font-weight: 800; margin-bottom: 5px; }
+        .insight-links { display: flex; flex-wrap: wrap; gap: 8px; }
+        .insight-links a { color: #344054; text-decoration: none; border-bottom: 1px solid #cfd6e1; line-height: 1.5; }
+        .insight-links a:hover { color: var(--blue); border-color: var(--blue); }
+        .health-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .health-table th, .health-table td { padding: 8px 6px; border-top: 1px solid #f0f2f5; text-align: left; vertical-align: top; }
+        .health-table th { color: var(--muted); font-size: 12px; }
+        .status { display: inline-flex; border-radius: 999px; padding: 3px 8px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+        .status-ok { color: #067647; background: #ecfdf3; }
+        .status-warning { color: #b54708; background: #fffaeb; }
+        .status-empty { color: #475467; background: #f2f4f7; }
+        .status-error { color: #b42318; background: #fef3f2; }
+        .error-cell { max-width: 240px; color: #667085; word-break: break-word; }
+        .category-section { margin-top: 30px; scroll-margin-top: 18px; }
+        .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 14px; }
+        .section-kicker { font-size: 13px; font-weight: 900; }
+        .section-heading h2 { margin: 3px 0 0; font-size: 22px; }
+        .count { color: var(--muted); font-size: 13px; font-weight: 700; }
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+        .news-card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 16px; min-height: 238px; display: flex; flex-direction: column; }
+        .news-card:hover { border-color: #b8c2d3; box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08); }
+        .news-card.is-read { opacity: 0.56; }
+        .card-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .source-pill { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, white); border: 1px solid color-mix(in srgb, var(--accent) 18%, white); border-radius: 999px; padding: 4px 9px; font-size: 12px; font-weight: 800; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .date { color: #98a2b3; font-size: 12px; white-space: nowrap; }
+        .news-card h3 { margin: 0 0 10px; font-size: 17px; line-height: 1.45; }
+        .news-card h3 a { text-decoration: none; }
+        .news-card h3 a:hover { color: var(--blue); }
+        .news-card p { margin: 0; color: #475467; line-height: 1.7; font-size: 14px; flex: 1; }
+        .card-actions { display: flex; align-items: center; gap: 10px; border-top: 1px solid #f0f2f5; padding-top: 12px; margin-top: 14px; }
+        .ghost-btn { border: 1px solid var(--line); background: #fff; color: #475467; border-radius: 6px; padding: 7px 10px; cursor: pointer; }
+        .read-link { margin-left: auto; background: var(--ink); color: #fff; text-decoration: none; border-radius: 6px; padding: 7px 10px; font-weight: 700; font-size: 13px; }
+        .badge.danger { color: #b42318; background: #fef3f2; border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 800; }
+        .empty-state { border: 1px dashed #cfd6e1; border-radius: 8px; padding: 18px; color: var(--muted); background: #fff; }
+        .footer-note { color: var(--muted); font-size: 12px; margin-top: 30px; }
+        @media (max-width: 980px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar { position: static; height: auto; }
+            .nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .main { padding: 22px 16px 36px; }
+            .hero, .panel-grid { grid-template-columns: 1fr; }
+            .toolbar { justify-content: flex-start; }
+            .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .search { width: 100%; }
+        }
+        @media (max-width: 560px) {
+            h1 { font-size: 25px; }
+            .stats, .news-grid, .nav { grid-template-columns: 1fr; }
+            .segmented { width: 100%; }
+            .filter-btn { flex: 1; }
+        }
     </style>
-    
-    </head>
-    <body>
-        <aside class='sidebar'>
-            <div class='logo'>🚀 SEO Intelligence Monitor</div>
-            <div class='nav-group'>
-                <div class='nav-title'>分类导航</div>
-                <a href='#SEO 动态' class='nav-item'>🔍 SEO 动态</a><a href='#GEO 趋势' class='nav-item'>🌐 GEO 趋势</a><a href='#AI 搜索' class='nav-item'>🤖 AI 搜索</a><a href='#国内资讯' class='nav-item'>🇨🇳 国内资讯</a><a href='#X 社交动态' class='nav-item'>𝕏 X 社交动态</a>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">SEO</div>
+                <div>
+                    <div class="brand-title">SEO News Monitor</div>
+                    <div class="brand-subtitle">自动抓取 · 情报筛选 · 信源体检</div>
+                </div>
             </div>
-            <div class='nav-group'>
-                <div class='nav-title'>社交入口</div>
-                <a href='https://x.com/Aleyda' target='_blank' class='nav-item'>𝕏 Aleyda Solis</a>
-                <a href='https://x.com/lilyraynyc' target='_blank' class='nav-item'>𝕏 Lily Ray</a>
-                <a href='https://x.com/zarazhangrui' target='_blank' class='nav-item'>𝕏 Zara Zhang</a>
-            </div>
+            <div class="nav-label">分类导航</div>
+            <nav class="nav"><a href='#seo'>🔎<span>SEO 动态</span><strong>21</strong></a><a href='#geo'>🌐<span>GEO 趋势</span><strong>13</strong></a><a href='#ai-search'>🤖<span>AI 搜索</span><strong>24</strong></a><a href='#china'>CN<span>国内资讯</span><strong>12</strong></a><a href='#experts'>𝕏<span>专家动态</span><strong>3</strong></a></nav>
+            <div class="nav-label">专家入口</div>
+            <nav class="nav">
+                <a href="https://x.com/Aleyda" target="_blank" rel="noopener noreferrer"><span>𝕏</span><span>Aleyda Solis</span><strong></strong></a>
+                <a href="https://x.com/lilyraynyc" target="_blank" rel="noopener noreferrer"><span>𝕏</span><span>Lily Ray</span><strong></strong></a>
+                <a href="https://x.com/zarazhangrui" target="_blank" rel="noopener noreferrer"><span>𝕏</span><span>Zara Zhang</span><strong></strong></a>
+            </nav>
         </aside>
-        <main class='main'>
-            <div class='header'>
-                <div class='page-title'>SEO / GEO / AI Search 情报看板</div>
-                <div class='filters'>
-                    <button class='filter-btn' data-days='3'>3 Days</button>
-                    <button class='filter-btn active' data-days='7'>7 Days</button>
-                    <button class='filter-btn' data-days='30'>30 Days</button>
+        <main class="main">
+            <header class="hero">
+                <div>
+                    <div class="eyebrow">SEO / GEO / AI SEARCH INTELLIGENCE</div>
+                    <h1>每天给自己看的搜索情报站</h1>
+                    <p class="intro">聚合你关心的海外 SEO、AI Search、GEO 与中文科技资讯。抓取失败会被记录，但不会再吞掉已经抓到的文章。</p>
+                </div>
+                <div class="toolbar">
+                    <input id="searchInput" class="search" type="search" placeholder="搜索标题、来源或摘要">
+                    <div class="segmented" aria-label="时间筛选">
+                        <button class="filter-btn" type="button" data-days="3">3天</button>
+                        <button class="filter-btn active" type="button" data-days="7">7天</button>
+                        <button class="filter-btn" type="button" data-days="14">14天</button>
+                    </div>
+                </div>
+            </header>
+            <section class="stats">
+                <div class="stat"><div class="stat-label">当前条目</div><div class="stat-value">73</div></div>
+                <div class="stat"><div class="stat-label">可用信源</div><div class="stat-value">9</div></div>
+                <div class="stat"><div class="stat-label">需关注信源</div><div class="stat-value">0</div></div>
+                <div class="stat"><div class="stat-label">最近更新</div><div class="stat-value" style="font-size:18px">2026-05-20</div></div>
+            </section>
+            <section class="panel-grid">
+                <div class="panel">
+                    <h2>本期重点</h2>
+                    
+            <div class="insight-row">
+                <div class="insight-icon" style="background:#2563eb">🔎</div>
+                <div>
+                    <div class="insight-title">SEO 动态</div>
+                    <div class="insight-links"><a href='https://searchengineland.com/googles-new-intelligent-search-box-its-biggest-change-to-the-search-box-in-25-years-477968' target='_blank' rel='noopener noreferrer'>Google’s new intelligent Search box – its biggest change to the search box in 25 years</a><a href='https://searchengineland.com/google-search-now-powered-by-gemini-3-5-flash-477975' target='_blank' rel='noopener noreferrer'>Google Search now powered by Gemini 3.5 Flash</a><a href='https://searchengineland.com/google-search-gains-information-agents-and-improved-agentic-experiences-477979' target='_blank' rel='noopener noreferrer'>Google Search gains information agents and improved agentic experiences</a></div>
                 </div>
             </div>
-            <section class='insights-box'>
-                <div class='box-header'>⚡ 本周重点摘要</div>
-                
-            <div class='insight-row'>
-                <div class='insight-label'>𝕏 X 社交动态</div>
-                <div class='insight-content'>本期重点：<a href='https://x.com/Aleyda' target='_blank'>Aleyda Solis (X) 最新动态入口</a>；<a href='https://x.com/lilyraynyc' target='_blank'>Lily Ray (X) 最新动态入口</a>；<a href='https://x.com/zarazhangrui' target='_blank'>Zara Zhang (X) 最新动态入口</a></div>
+            
+            <div class="insight-row">
+                <div class="insight-icon" style="background:#0891b2">🌐</div>
+                <div>
+                    <div class="insight-title">GEO 趋势</div>
+                    <div class="insight-links"><a href='https://www.searchenginejournal.com/ai-seo-mentions-study-victorious-spa/575040/' target='_blank' rel='noopener noreferrer'>90% Of Brands Have Zero AI Search Mentions, New Study Finds 4 Key SEO Insights</a><a href='https://www.searchenginejournal.com/youtube-expands-ai-creation-tools-with-gemini-omni-and-conversational-search/575310/' target='_blank' rel='noopener noreferrer'>YouTube Expands AI Creation Tools With Gemini Omni And Conversational Search via @sejournal, @brookeosmundson</a><a href='https://www.searchenginejournal.com/google-announces-new-universal-cart-at-i-o/575301/' target='_blank' rel='noopener noreferrer'>Google Announces New Universal Cart At I/O via @sejournal, @brookeosmundson</a></div>
+                </div>
             </div>
             
-            </section>
-            <section class='health-box'>
-                <div class='box-header'>🩺 信源健康状态</div>
-                <table class='health-table'>
-                    <thead>
-                        <tr>
-                            <th>分类</th>
-                            <th>信源</th>
-                            <th>状态</th>
-                            <th>近7天条目</th>
-                            <th>错误信息</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        
+            <div class="insight-row">
+                <div class="insight-icon" style="background:#7c3aed">🤖</div>
+                <div>
+                    <div class="insight-title">AI 搜索</div>
+                    <div class="insight-links"><a href='https://blog.google/innovation-and-ai/technology/developers-tools/google-io-2026-collection/' target='_blank' rel='noopener noreferrer'>I/O 2026</a><a href='https://blog.google/products-and-platforms/products/search/ai-mode-us-insights/' target='_blank' rel='noopener noreferrer'>How AI Mode is changing the way people search in the U.S.</a><a href='https://blog.google/products-and-platforms/products/workspace/workspace-updates/' target='_blank' rel='noopener noreferrer'>New ways to create and get things done in Google Workspace</a></div>
+                </div>
+            </div>
+            
+            <div class="insight-row">
+                <div class="insight-icon" style="background:#dc2626">CN</div>
+                <div>
+                    <div class="insight-title">国内资讯</div>
+                    <div class="insight-links"><a href='https://36kr.com/newsflashes/3816962733229191?f=rss' target='_blank' rel='noopener noreferrer'>扩博智能Sparrow刷新两项海上风电纪录</a><a href='https://36kr.com/newsflashes/3816970108322689?f=rss' target='_blank' rel='noopener noreferrer'>段永平1380亿元持仓曝光，一季度新进特斯拉</a><a href='https://36kr.com/p/3814411349581316?f=rss' target='_blank' rel='noopener noreferrer'>做出百万台割草机器人后，未岚大陆CEO决定让自己变得“不重要”｜硬氪专访</a></div>
+                </div>
+            </div>
+            
+            <div class="insight-row">
+                <div class="insight-icon" style="background:#111827">𝕏</div>
+                <div>
+                    <div class="insight-title">专家动态</div>
+                    <div class="insight-links"><a href='https://x.com/Aleyda' target='_blank' rel='noopener noreferrer'>Aleyda Solis 最新观点入口</a><a href='https://x.com/lilyraynyc' target='_blank' rel='noopener noreferrer'>Lily Ray 最新观点入口</a><a href='https://x.com/zarazhangrui' target='_blank' rel='noopener noreferrer'>Zara Zhang 最新观点入口</a></div>
+                </div>
+            </div>
+            
+                </div>
+                <div class="panel">
+                    <h2>信源健康</h2>
+                    <table class="health-table">
+                        <thead><tr><th>分类</th><th>信源</th><th>状态</th><th>条目</th><th>说明</th></tr></thead>
+                        <tbody>
             <tr>
                 <td>SEO 动态</td>
-                <td>Google Search Central</td>
-                <td>⚠️ 异常</td>
+                <td><a href="https://developers.google.com/search/blog/feed.xml" target="_blank" rel="noopener noreferrer">Google Search Central</a></td>
+                <td><span class="status status-ok">正常</span></td>
                 <td>1</td>
-                <td class='error-cell'>document declared as us-ascii, but parsed as utf-8</td>
+                <td class="error-cell">-</td>
             </tr>
             
             <tr>
                 <td>SEO 动态</td>
-                <td>Search Engine Land</td>
-                <td>⚠️ 异常</td>
+                <td><a href="https://searchengineland.com/feed" target="_blank" rel="noopener noreferrer">Search Engine Land</a></td>
+                <td><span class="status status-ok">正常</span></td>
+                <td>10</td>
+                <td class="error-cell">-</td>
+            </tr>
+            
+            <tr>
+                <td>SEO 动态</td>
+                <td><a href="https://www.seroundtable.com/rss.xml" target="_blank" rel="noopener noreferrer">SEO Roundtable</a></td>
+                <td><span class="status status-empty">无新内容</span></td>
                 <td>0</td>
-                <td class='error-cell'>&lt;unknown&gt;:2:1326: not well-formed (invalid token)</td>
+                <td class="error-cell">未发现近 14 天内的条目；content-type: application/xml</td>
             </tr>
             
             <tr>
                 <td>SEO 动态</td>
-                <td>SEO Roundtable</td>
-                <td>⚠️ 异常</td>
+                <td><a href="https://ahrefs.com/blog/feed/" target="_blank" rel="noopener noreferrer">Ahrefs Blog</a></td>
+                <td><span class="status status-ok">正常</span></td>
+                <td>10</td>
+                <td class="error-cell">-</td>
+            </tr>
+            
+            <tr>
+                <td>SEO 动态</td>
+                <td><a href="https://backlinko.com/feed/" target="_blank" rel="noopener noreferrer">Backlinko</a></td>
+                <td><span class="status status-empty">无新内容</span></td>
                 <td>0</td>
-                <td class='error-cell'>-</td>
-            </tr>
-            
-            <tr>
-                <td>SEO 动态</td>
-                <td>Ahrefs Blog</td>
-                <td>✅ 正常</td>
-                <td>3</td>
-                <td class='error-cell'>-</td>
-            </tr>
-            
-            <tr>
-                <td>SEO 动态</td>
-                <td>Backlinko</td>
-                <td>⚠️ 异常</td>
-                <td>0</td>
-                <td class='error-cell'>-</td>
+                <td class="error-cell">未发现近 14 天内的条目；content-type: application/xml</td>
             </tr>
             
             <tr>
                 <td>GEO 趋势</td>
-                <td>Search Engine Journal (AI Search)</td>
-                <td>⚠️ 异常</td>
-                <td>0</td>
-                <td class='error-cell'>&lt;unknown&gt;:18:72: not well-formed (invalid token)</td>
+                <td><a href="https://www.searchenginejournal.com/feed/" target="_blank" rel="noopener noreferrer">Search Engine Journal</a></td>
+                <td><span class="status status-ok">正常</span></td>
+                <td>12</td>
+                <td class="error-cell">-</td>
             </tr>
             
             <tr>
                 <td>GEO 趋势</td>
-                <td>Perplexity Blog</td>
-                <td>⚠️ 异常</td>
-                <td>0</td>
-                <td class='error-cell'>&lt;unknown&gt;:2:1326: not well-formed (invalid token)</td>
-            </tr>
-            
-            <tr>
-                <td>GEO 趋势</td>
-                <td>Aleyda Solis</td>
-                <td>✅ 正常</td>
+                <td><a href="https://www.aleydasolis.com/en/blog/feed/" target="_blank" rel="noopener noreferrer">Aleyda Solis Blog</a></td>
+                <td><span class="status status-ok">正常</span></td>
                 <td>1</td>
-                <td class='error-cell'>-</td>
+                <td class="error-cell">-</td>
             </tr>
             
             <tr>
                 <td>GEO 趋势</td>
-                <td>Onely (Tech SEO)</td>
-                <td>⚠️ 异常</td>
+                <td><a href="https://www.onely.com/blog/feed/" target="_blank" rel="noopener noreferrer">Onely Tech SEO</a></td>
+                <td><span class="status status-empty">无新内容</span></td>
                 <td>0</td>
-                <td class='error-cell'>&lt;unknown&gt;:2:0: syntax error</td>
+                <td class="error-cell">&lt;unknown&gt;:2:0: syntax error</td>
             </tr>
             
             <tr>
                 <td>AI 搜索</td>
-                <td>OpenAI News</td>
-                <td>✅ 正常</td>
-                <td>13</td>
-                <td class='error-cell'>-</td>
+                <td><a href="https://openai.com/news/rss.xml" target="_blank" rel="noopener noreferrer">OpenAI News</a></td>
+                <td><span class="status status-ok">正常</span></td>
+                <td>12</td>
+                <td class="error-cell">-</td>
             </tr>
             
             <tr>
                 <td>AI 搜索</td>
-                <td>Google Blog (AI)</td>
-                <td>⚠️ 异常</td>
-                <td>0</td>
-                <td class='error-cell'>-</td>
+                <td><a href="https://blog.google/technology/ai/rss/" target="_blank" rel="noopener noreferrer">Google AI Blog</a></td>
+                <td><span class="status status-ok">正常</span></td>
+                <td>10</td>
+                <td class="error-cell">-</td>
             </tr>
             
             <tr>
                 <td>AI 搜索</td>
-                <td>Microsoft Bing Blog</td>
-                <td>⚠️ 异常</td>
-                <td>0</td>
-                <td class='error-cell'>&lt;unknown&gt;:22:16: not well-formed (invalid token)</td>
+                <td><a href="https://blogs.bing.com/search/feed" target="_blank" rel="noopener noreferrer">Microsoft Bing Blog</a></td>
+                <td><span class="status status-ok">正常</span></td>
+                <td>2</td>
+                <td class="error-cell">-</td>
             </tr>
             
             <tr>
                 <td>国内资讯</td>
-                <td>36Kr AI</td>
-                <td>✅ 正常</td>
-                <td>30</td>
-                <td class='error-cell'>-</td>
+                <td><a href="https://36kr.com/feed" target="_blank" rel="noopener noreferrer">36Kr</a></td>
+                <td><span class="status status-ok">正常</span></td>
+                <td>12</td>
+                <td class="error-cell">-</td>
             </tr>
             
             <tr>
                 <td>国内资讯</td>
-                <td>机器之心</td>
-                <td>⚠️ 异常</td>
+                <td><a href="https://www.jiqizhixin.com/rss" target="_blank" rel="noopener noreferrer">机器之心</a></td>
+                <td><span class="status status-empty">无新内容</span></td>
                 <td>0</td>
-                <td class='error-cell'>&lt;unknown&gt;:12:244: mismatched tag</td>
+                <td class="error-cell">&lt;unknown&gt;:12:244: mismatched tag</td>
             </tr>
             
             <tr>
                 <td>国内资讯</td>
-                <td>InfoQ AI</td>
-                <td>⚠️ 异常</td>
+                <td><a href="https://xie.infoq.cn/rss/ai" target="_blank" rel="noopener noreferrer">InfoQ AI</a></td>
+                <td><span class="status status-empty">无新内容</span></td>
                 <td>0</td>
-                <td class='error-cell'>&lt;unknown&gt;:2:1329: not well-formed (invalid token)</td>
+                <td class="error-cell">&lt;unknown&gt;:2:1329: not well-formed (invalid token)</td>
             </tr>
-            
-            <tr>
-                <td>国内资讯</td>
-                <td>独立站与SEO艺术(订阅源占位)</td>
-                <td>⚠️ 异常</td>
-                <td>0</td>
-                <td class='error-cell'>&lt;unknown&gt;:2:1326: not well-formed (invalid token)</td>
-            </tr>
-            
-            <tr>
-                <td>国内资讯</td>
-                <td>从0到AI(订阅源占位)</td>
-                <td>⚠️ 异常</td>
-                <td>0</td>
-                <td class='error-cell'>&lt;unknown&gt;:2:1326: not well-formed (invalid token)</td>
-            </tr>
-            
-            <tr>
-                <td>X 社交动态</td>
-                <td>Aleyda Solis (X)</td>
-                <td>⚠️ 异常</td>
-                <td>0</td>
-                <td class='error-cell'>&lt;unknown&gt;:3:11: not well-formed (invalid token)</td>
-            </tr>
-            
-            <tr>
-                <td>X 社交动态</td>
-                <td>Lily Ray (X)</td>
-                <td>⚠️ 异常</td>
-                <td>0</td>
-                <td class='error-cell'>&lt;unknown&gt;:3:11: not well-formed (invalid token)</td>
-            </tr>
-            
-            <tr>
-                <td>X 社交动态</td>
-                <td>Zara Zhang (X)</td>
-                <td>⚠️ 异常</td>
-                <td>0</td>
-                <td class='error-cell'>&lt;unknown&gt;:3:11: not well-formed (invalid token)</td>
-            </tr>
-            
-                    </tbody>
-                </table>
+            </tbody>
+                    </table>
+                </div>
             </section>
             
-            <section class='category-section' id='SEO 动态'>
-                <div class='section-title'>
-                    <span>🔍 SEO 动态</span>
-                    <span style='font-size:0.78rem; color:#94a3b8;'>0 条</span>
-                </div>
-                <div class='grid'><div style='color:#94a3b8;'>暂无更新</div></div>
-            </section>
-            
-            <section class='category-section' id='GEO 趋势'>
-                <div class='section-title'>
-                    <span>🌐 GEO 趋势</span>
-                    <span style='font-size:0.78rem; color:#94a3b8;'>0 条</span>
-                </div>
-                <div class='grid'><div style='color:#94a3b8;'>暂无更新</div></div>
-            </section>
-            
-            <section class='category-section' id='AI 搜索'>
-                <div class='section-title'>
-                    <span>🤖 AI 搜索</span>
-                    <span style='font-size:0.78rem; color:#94a3b8;'>0 条</span>
-                </div>
-                <div class='grid'><div style='color:#94a3b8;'>暂无更新</div></div>
-            </section>
-            
-            <section class='category-section' id='国内资讯'>
-                <div class='section-title'>
-                    <span>🇨🇳 国内资讯</span>
-                    <span style='font-size:0.78rem; color:#94a3b8;'>0 条</span>
-                </div>
-                <div class='grid'><div style='color:#94a3b8;'>暂无更新</div></div>
-            </section>
-            
-            <section class='category-section' id='X 社交动态'>
-                <div class='section-title'>
-                    <span>𝕏 X 社交动态</span>
-                    <span style='font-size:0.78rem; color:#94a3b8;'>3 条</span>
-                </div>
-                <div class='grid'>
-    <article class='card card-item' id='f898d03ac72ac955' data-ts='1779163224'>
-        
-        <div class='card-meta'>
-            <span class='source-tag'>Aleyda Solis (X)</span>
-            <span class='date'>2026-05-19</span>
+    <section class="category-section" id="seo">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker" style="color:#2563eb">🔎 SEO 动态</span>
+                <h2>SEO 动态</h2>
+            </div>
+            <span class="count">21 条</span>
         </div>
-        <h3>Aleyda Solis (X) 最新动态入口</h3>
-        <p>当前未拉取到可用RSS条目，已提供该专家的X主页入口，便于你直接查看最新观点与实时讨论。</p>
-        <div class='card-footer'>
-            <button class='action-btn btn-read' onclick="toggleRead('f898d03ac72ac955', this)">Mark Read</button>
-            <a href='https://x.com/Aleyda' target='_blank' class='btn-primary'>Read Full →</a>
+        <div class="news-grid">
+    <article class="news-card card-item" id="03ed62351ef22f7c" data-ts="1779183900" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Search Engine Land</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://searchengineland.com/googles-new-intelligent-search-box-its-biggest-change-to-the-search-box-in-25-years-477968" target="_blank" rel="noopener noreferrer">Google’s new intelligent Search box – its biggest change to the search box in 25 years</a></h3>
+        <p>来自 Search Engine Land：This new search box aims to gives searchers easier access to AI search capabilit。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('03ed62351ef22f7c', this)">标记已读</button>
+            <a class="read-link" href="https://searchengineland.com/googles-new-intelligent-search-box-its-biggest-change-to-the-search-box-in-25-years-477968" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
         </div>
     </article>
     
-    <article class='card card-item' id='7c12ddc4dc15a808' data-ts='1779163224'>
-        
-        <div class='card-meta'>
-            <span class='source-tag'>Lily Ray (X)</span>
-            <span class='date'>2026-05-19</span>
+    <article class="news-card card-item" id="09950f4d2160fee5" data-ts="1779183900" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Search Engine Land</span>
+            <span class="date">2026-05-19</span>
         </div>
-        <h3>Lily Ray (X) 最新动态入口</h3>
-        <p>当前未拉取到可用RSS条目，已提供该专家的X主页入口，便于你直接查看最新观点与实时讨论。</p>
-        <div class='card-footer'>
-            <button class='action-btn btn-read' onclick="toggleRead('7c12ddc4dc15a808', this)">Mark Read</button>
-            <a href='https://x.com/lilyraynyc' target='_blank' class='btn-primary'>Read Full →</a>
+        <h3><a href="https://searchengineland.com/google-search-now-powered-by-gemini-3-5-flash-477975" target="_blank" rel="noopener noreferrer">Google Search now powered by Gemini 3.5 Flash</a></h3>
+        <p>来自 Search Engine Land：Google announced Gemini 3.5 Flash today and immediately it is now powering Googl。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('09950f4d2160fee5', this)">标记已读</button>
+            <a class="read-link" href="https://searchengineland.com/google-search-now-powered-by-gemini-3-5-flash-477975" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
         </div>
     </article>
     
-    <article class='card card-item' id='aab71456f097c131' data-ts='1779163224'>
-        
-        <div class='card-meta'>
-            <span class='source-tag'>Zara Zhang (X)</span>
-            <span class='date'>2026-05-19</span>
+    <article class="news-card card-item" id="6a522b733db8b6a3" data-ts="1779183900" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Search Engine Land</span>
+            <span class="date">2026-05-19</span>
         </div>
-        <h3>Zara Zhang (X) 最新动态入口</h3>
-        <p>当前未拉取到可用RSS条目，已提供该专家的X主页入口，便于你直接查看最新观点与实时讨论。</p>
-        <div class='card-footer'>
-            <button class='action-btn btn-read' onclick="toggleRead('aab71456f097c131', this)">Mark Read</button>
-            <a href='https://x.com/zarazhangrui' target='_blank' class='btn-primary'>Read Full →</a>
+        <h3><a href="https://searchengineland.com/google-search-gains-information-agents-and-improved-agentic-experiences-477979" target="_blank" rel="noopener noreferrer">Google Search gains information agents and improved agentic experiences</a></h3>
+        <p>来自 Search Engine Land：Google will continuously scan the web to give you updated information on your se。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('6a522b733db8b6a3', this)">标记已读</button>
+            <a class="read-link" href="https://searchengineland.com/google-search-gains-information-agents-and-improved-agentic-experiences-477979" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="85642dc8a2a6500b" data-ts="1779183900" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Search Engine Land</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://searchengineland.com/google-lets-you-build-your-own-app-within-google-search-with-agentic-coding-477985" target="_blank" rel="noopener noreferrer">Google lets you build your own app within Google Search with agentic coding</a></h3>
+        <p>来自 Search Engine Land：This is powered by Google Antigravity and uses Gemini 3.5 right in Google Search。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('85642dc8a2a6500b', this)">标记已读</button>
+            <a class="read-link" href="https://searchengineland.com/google-lets-you-build-your-own-app-within-google-search-with-agentic-coding-477985" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="9b6298e2e27fbb17" data-ts="1779183900" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Search Engine Land</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://searchengineland.com/google-search-universal-cart-expands-ucp-and-ap2-477989" target="_blank" rel="noopener noreferrer">Google Search Universal Cart, expands UCP and AP2</a></h3>
+        <p>来自 Search Engine Land：Google&#x27;s Shopping Graph is now over 60 billion products.。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('9b6298e2e27fbb17', this)">标记已读</button>
+            <a class="read-link" href="https://searchengineland.com/google-search-universal-cart-expands-ucp-and-ap2-477989" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="1f919041496e14ef" data-ts="1779174000" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Search Engine Land</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://searchengineland.com/funnel-query-pathway-framework-measuring-ai-visibility-477932" target="_blank" rel="noopener noreferrer">The funnel query pathway: A framework for measuring AI visibility</a></h3>
+        <p>来自 Search Engine Land：Traditional SEO metrics break in AI environments. Here’s a new model for trackin。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('1f919041496e14ef', this)">标记已读</button>
+            <a class="read-link" href="https://searchengineland.com/funnel-query-pathway-framework-measuring-ai-visibility-477932" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="e84b568af85c5773" data-ts="1779172733" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Search Engine Land</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://searchengineland.com/reasoning-lift-what-happens-to-brand-visibility-when-ai-thinks-harder-477883" target="_blank" rel="noopener noreferrer">Reasoning lift: What happens to brand visibility when AI thinks harder</a></h3>
+        <p>来自 Search Engine Land：An analysis of 200 GPT-5.2 responses found high reasoning cites more sources, ru。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('e84b568af85c5773', this)">标记已读</button>
+            <a class="read-link" href="https://searchengineland.com/reasoning-lift-what-happens-to-brand-visibility-when-ai-thinks-harder-477883" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="eee27669a4e30468" data-ts="1779170400" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Search Engine Land</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://searchengineland.com/build-custom-seo-reports-claude-code-google-search-console-477894" target="_blank" rel="noopener noreferrer">How to build custom SEO reports with Claude Code and Google Search Console</a></h3>
+        <p>来自 Search Engine Land：Connect GSC data to Claude Code, generate custom visualizations, and create flex。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('eee27669a4e30468', this)">标记已读</button>
+            <a class="read-link" href="https://searchengineland.com/build-custom-seo-reports-claude-code-google-search-console-477894" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="53d8333b98052307" data-ts="1779166800" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Search Engine Land</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://searchengineland.com/ai-increase-seo-expertise-value-477908" target="_blank" rel="noopener noreferrer">How AI may increase the value of SEO expertise</a></h3>
+        <p>来自 Search Engine Land：As AI automates repetitive SEO tasks, the biggest advantage may go to practition。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('53d8333b98052307', this)">标记已读</button>
+            <a class="read-link" href="https://searchengineland.com/ai-increase-seo-expertise-value-477908" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="1f4dd6d6670c95f9" data-ts="1779159600" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Search Engine Land</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://searchengineland.com/ai-search-loves-listicles-what-25000-urls-reveal-about-citations-477682" target="_blank" rel="noopener noreferrer">AI search loves listicles: What 25,000 URLs reveal about citations by Evertune</a></h3>
+        <p>来自 Search Engine Land：A review of 25,000 URLs yielded insights about the type of content most cited by。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('1f4dd6d6670c95f9', this)">标记已读</button>
+            <a class="read-link" href="https://searchengineland.com/ai-search-loves-listicles-what-25000-urls-reveal-about-citations-477682" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="6782faf6c0f0b0b0" data-ts="1779158114" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Ahrefs Blog</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://ahrefs.com/blog/agent-a-for-content-marketing/" target="_blank" rel="noopener noreferrer">7 Ways to Automate Content Marketing with Agent A</a></h3>
+        <p>来自 Ahrefs Blog：Writing formulaic SEO content, updating old articles, reporting on blog performance, ev。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('6782faf6c0f0b0b0', this)">标记已读</button>
+            <a class="read-link" href="https://ahrefs.com/blog/agent-a-for-content-marketing/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="a70fff6eb40545e8" data-ts="1779150264" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Ahrefs Blog</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://ahrefs.com/blog/what-is-content-engineering/" target="_blank" rel="noopener noreferrer">What Is Content Engineering, and How Do You Do It?</a></h3>
+        <p>来自 Ahrefs Blog：In this post, I’ll cover what content engineering actually is, its core components, who。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('a70fff6eb40545e8', this)">标记已读</button>
+            <a class="read-link" href="https://ahrefs.com/blog/what-is-content-engineering/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="ab466d3269a4852d" data-ts="1779149871" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Ahrefs Blog</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://ahrefs.com/blog/agentic-seo/" target="_blank" rel="noopener noreferrer">What Is Agentic SEO? And How to Get Started This Week</a></h3>
+        <p>来自 Ahrefs Blog：It’s just a completely new way of working, also for SEOs. Instead of building every ste。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('ab466d3269a4852d', this)">标记已读</button>
+            <a class="read-link" href="https://ahrefs.com/blog/agentic-seo/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="ecbd4f3de3aa8499" data-ts="1778831850" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Ahrefs Blog</span>
+            <span class="date">2026-05-15</span>
+        </div>
+        <h3><a href="https://ahrefs.com/blog/ai-agents-for-seo/" target="_blank" rel="noopener noreferrer">AI Agents for SEO: What They Are, How They Work, and How to Build One</a></h3>
+        <p>来自 Ahrefs Blog：This article covers what AI SEO agents actually do in practice, which tools are worth k。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('ecbd4f3de3aa8499', this)">标记已读</button>
+            <a class="read-link" href="https://ahrefs.com/blog/ai-agents-for-seo/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="deae9a908d42e769" data-ts="1778805836" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Ahrefs Blog</span>
+            <span class="date">2026-05-15</span>
+        </div>
+        <h3><a href="https://ahrefs.com/blog/ai-chatbot-traffic/" target="_blank" rel="noopener noreferrer">AI Chatbot Traffic: What It Is, and How to Get More</a></h3>
+        <p>来自 Ahrefs Blog：When ChatGPT, Perplexity, or Claude cites your content in a response, some of those use。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('deae9a908d42e769', this)">标记已读</button>
+            <a class="read-link" href="https://ahrefs.com/blog/ai-chatbot-traffic/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="6043b1f8766edc4f" data-ts="1778774400" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Google Search Central</span>
+            <span class="date">2026-05-15</span>
+        </div>
+        <h3><a href="https://developers.google.com/search/blog/2026/05/a-new-resource-for-optimizing" target="_blank" rel="noopener noreferrer">A new resource for optimizing for generative AI in Google Search</a></h3>
+        <p>来自 Google Search Central：As people increasingly gravitate to generative AI experiences and find inform。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('6043b1f8766edc4f', this)">标记已读</button>
+            <a class="read-link" href="https://developers.google.com/search/blog/2026/05/a-new-resource-for-optimizing" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="d13d75276279c96a" data-ts="1778738420" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Ahrefs Blog</span>
+            <span class="date">2026-05-14</span>
+        </div>
+        <h3><a href="https://ahrefs.com/blog/google-knowledge-graph/" target="_blank" rel="noopener noreferrer">Google’s Knowledge Graph Explained: How It Influences SEO &amp; AI Search</a></h3>
+        <p>来自 Ahrefs Blog：… then you’ve already experienced the benefits of Google’s Knowledge Graph. But what is。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('d13d75276279c96a', this)">标记已读</button>
+            <a class="read-link" href="https://ahrefs.com/blog/google-knowledge-graph/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="050714eb2b245d65" data-ts="1778488579" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Ahrefs Blog</span>
+            <span class="date">2026-05-11</span>
+        </div>
+        <h3><a href="https://ahrefs.com/blog/schema-ai-citations/" target="_blank" rel="noopener noreferrer">We Tracked 1,885 Pages Adding Schema. AI Citations Barely Moved.</a></h3>
+        <p>来自 Ahrefs Blog：AI cited pages were almost three times more likely to have JSON-LD than non-cited pages。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('050714eb2b245d65', this)">标记已读</button>
+            <a class="read-link" href="https://ahrefs.com/blog/schema-ai-citations/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="dcbaf11f01aca863" data-ts="1778475607" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Ahrefs Blog</span>
+            <span class="date">2026-05-11</span>
+        </div>
+        <h3><a href="https://ahrefs.com/blog/schema-markup/" target="_blank" rel="noopener noreferrer">Schema Markup: What It Is &amp; How to Implement It</a></h3>
+        <p>来自 Ahrefs Blog：​​ Here’s a basic example of what the code can look like: ​​You can see that, unlike th。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('dcbaf11f01aca863', this)">标记已读</button>
+            <a class="read-link" href="https://ahrefs.com/blog/schema-markup/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="07ee032f6e507738" data-ts="1778230772" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Ahrefs Blog</span>
+            <span class="date">2026-05-08</span>
+        </div>
+        <h3><a href="https://ahrefs.com/blog/claude-skills/" target="_blank" rel="noopener noreferrer">Claude Skills for SEO and Marketing: What They Are and How to Use Them</a></h3>
+        <p>来自 Ahrefs Blog：It pulls the article and generates three to five distinct LinkedIn posts. Before that。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('07ee032f6e507738', this)">标记已读</button>
+            <a class="read-link" href="https://ahrefs.com/blog/claude-skills/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="7dac344b23179384" data-ts="1778218511" data-category="SEO 动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#2563eb">Ahrefs Blog</span>
+            <span class="date">2026-05-08</span>
+        </div>
+        <h3><a href="https://ahrefs.com/blog/on-page-aeo/" target="_blank" rel="noopener noreferrer">On-Page AEO: 4 Writing Frameworks for Better AI Visibility</a></h3>
+        <p>来自 Ahrefs Blog：Dan Petrovic wrote a great article explaining why human-friendly content is AI-friendly。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('7dac344b23179384', this)">标记已读</button>
+            <a class="read-link" href="https://ahrefs.com/blog/on-page-aeo/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
         </div>
     </article>
     </div>
-            </section>
+    </section>
+    
+    <section class="category-section" id="geo">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker" style="color:#0891b2">🌐 GEO 趋势</span>
+                <h2>GEO 趋势</h2>
+            </div>
+            <span class="count">13 条</span>
+        </div>
+        <div class="news-grid">
+    <article class="news-card card-item" id="b8ce9f18d971f676" data-ts="1779197230" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Search Engine Journal</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://www.searchenginejournal.com/ai-seo-mentions-study-victorious-spa/575040/" target="_blank" rel="noopener noreferrer">90% Of Brands Have Zero AI Search Mentions, New Study Finds 4 Key SEO Insights</a></h3>
+        <p>来自 Search Engine Journal：Discover the connection between traditional search results and AI mentions in。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('b8ce9f18d971f676', this)">标记已读</button>
+            <a class="read-link" href="https://www.searchenginejournal.com/ai-seo-mentions-study-victorious-spa/575040/" target="_blank" rel="noopener noreferrer">阅读全文</a>
             
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="594d3b65f7f43ae2" data-ts="1779184812" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Search Engine Journal</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://www.searchenginejournal.com/youtube-expands-ai-creation-tools-with-gemini-omni-and-conversational-search/575310/" target="_blank" rel="noopener noreferrer">YouTube Expands AI Creation Tools With Gemini Omni And Conversational Search via @sejournal, @brookeosmundson</a></h3>
+        <p>来自 Search Engine Journal：YouTube introduced Gemini Omni AI remixing and Ask YouTube conversational sea。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('594d3b65f7f43ae2', this)">标记已读</button>
+            <a class="read-link" href="https://www.searchenginejournal.com/youtube-expands-ai-creation-tools-with-gemini-omni-and-conversational-search/575310/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            <span class='badge danger'>VIDEO</span>
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="a7aef5e57ede764d" data-ts="1779183941" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Search Engine Journal</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://www.searchenginejournal.com/google-announces-new-universal-cart-at-i-o/575301/" target="_blank" rel="noopener noreferrer">Google Announces New Universal Cart At I/O via @sejournal, @brookeosmundson</a></h3>
+        <p>来自 Search Engine Journal：Google introduced Universal Cart at Google I/O, a new intelligent shopping ca。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('a7aef5e57ede764d', this)">标记已读</button>
+            <a class="read-link" href="https://www.searchenginejournal.com/google-announces-new-universal-cart-at-i-o/575301/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="b86cb41614cf8962" data-ts="1779183926" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Search Engine Journal</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://www.searchenginejournal.com/google-brings-ai-content-verification-to-search/575320/" target="_blank" rel="noopener noreferrer">Google Brings AI Content Verification To Search via @sejournal, @MattGSouthern</a></h3>
+        <p>来自 Search Engine Journal：Google expands SynthID verification to Search, allowing users to check whethe。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('b86cb41614cf8962', this)">标记已读</button>
+            <a class="read-link" href="https://www.searchenginejournal.com/google-brings-ai-content-verification-to-search/575320/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="4a7469e38e6a23a8" data-ts="1779183917" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Search Engine Journal</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://www.searchenginejournal.com/google-adds-ai-agents-to-search-redesigns-search-box-at-i-o/575311/" target="_blank" rel="noopener noreferrer">Google Adds AI Agents To Search, Redesigns Search Box At I/O via @sejournal, @MattGSouthern</a></h3>
+        <p>来自 Search Engine Journal：Google made Gemini 3.5 Flash the default model in AI Mode, redesigned the Sea。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('4a7469e38e6a23a8', this)">标记已读</button>
+            <a class="read-link" href="https://www.searchenginejournal.com/google-adds-ai-agents-to-search-redesigns-search-box-at-i-o/575311/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="8382c2c03f210e24" data-ts="1779168650" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Search Engine Journal</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://www.searchenginejournal.com/creating-non-commodity-content-that-cuts-through-the-noise/575092/" target="_blank" rel="noopener noreferrer">Creating ‘Non-Commodity’ Content That Cuts Through The Noise</a></h3>
+        <p>来自 Search Engine Journal：Google&#x27;s information gain patent is real. Commodity content can&#x27;t beat it. He。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('8382c2c03f210e24', this)">标记已读</button>
+            <a class="read-link" href="https://www.searchenginejournal.com/creating-non-commodity-content-that-cuts-through-the-noise/575092/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="5d2910d34acc6eec" data-ts="1779161404" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Search Engine Journal</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://www.searchenginejournal.com/why-incrementality-testing-alone-wont-fix-your-paid-media-budget-the-missing-metric/573832/" target="_blank" rel="noopener noreferrer">Why Incrementality Testing Alone Won’t Fix Your Paid Media Budget – The Missing Metric via @sejournal, @tonyadam</a></h3>
+        <p>来自 Search Engine Journal：Your lift study came in low. Should you cut the channel? Not before reading h。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('5d2910d34acc6eec', this)">标记已读</button>
+            <a class="read-link" href="https://www.searchenginejournal.com/why-incrementality-testing-alone-wont-fix-your-paid-media-budget-the-missing-metric/573832/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="a399a6999acc957f" data-ts="1779152409" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Search Engine Journal</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://www.searchenginejournal.com/what-googles-ucp-tells-us-about-agent-ready-websites/574220/" target="_blank" rel="noopener noreferrer">What Google’s UCP Tells Us About Agent-Ready Websites via @sejournal, @slobodanmanic</a></h3>
+        <p>来自 Search Engine Journal：Google built UCP for Shopping. The architecture underneath it is a blueprint。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('a399a6999acc957f', this)">标记已读</button>
+            <a class="read-link" href="https://www.searchenginejournal.com/what-googles-ucp-tells-us-about-agent-ready-websites/574220/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="939a2e97e6a07d6f" data-ts="1779147940" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Search Engine Journal</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://www.searchenginejournal.com/inside-ai-citation-proven-strategies-to-get-your-brand-cited/574807/" target="_blank" rel="noopener noreferrer">Inside AI Citation: Proven Strategies To Get Your Brand Cited via @sejournal, @lorenbaker</a></h3>
+        <p>来自 Search Engine Journal：Understand the impact of AI citation on brand visibility. Discover what conte。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('939a2e97e6a07d6f', this)">标记已读</button>
+            <a class="read-link" href="https://www.searchenginejournal.com/inside-ai-citation-proven-strategies-to-get-your-brand-cited/574807/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="7082eea6390cf983" data-ts="1779080417" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Search Engine Journal</span>
+            <span class="date">2026-05-18</span>
+        </div>
+        <h3><a href="https://www.searchenginejournal.com/it-works-until-it-doesnt-ai-content-strategies-that-backfire/574820/" target="_blank" rel="noopener noreferrer">It Works Until It Doesn’t: AI Content Strategies That Backfire via @sejournal, @lilyraynyc</a></h3>
+        <p>来自 Search Engine Journal：Scaling content with AI looks like an SEO win until it doesn&#x27;t. Data from 220。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('7082eea6390cf983', this)">标记已读</button>
+            <a class="read-link" href="https://www.searchenginejournal.com/it-works-until-it-doesnt-ai-content-strategies-that-backfire/574820/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="f795b2953ad075f4" data-ts="1779074122" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Search Engine Journal</span>
+            <span class="date">2026-05-18</span>
+        </div>
+        <h3><a href="https://www.searchenginejournal.com/rethinking-audience-targeting-signal-loss-era-rem-framework/572422/" target="_blank" rel="noopener noreferrer">Rethinking Audience Targeting In A Signal-Loss Era (With The R.E.M. Framework) via @sejournal, @SequinsNsearch</a></h3>
+        <p>来自 Search Engine Journal：Do you really know who your audience is? In this article, we introduce the R.。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('f795b2953ad075f4', this)">标记已读</button>
+            <a class="read-link" href="https://www.searchenginejournal.com/rethinking-audience-targeting-signal-loss-era-rem-framework/572422/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="03d7ae283d19a6d0" data-ts="1779067813" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Search Engine Journal</span>
+            <span class="date">2026-05-18</span>
+        </div>
+        <h3><a href="https://www.searchenginejournal.com/anthropics-infrastructure-crisis-what-it-means-for-marketers-seo-pros/574258/" target="_blank" rel="noopener noreferrer">Anthropic’s Infrastructure Crisis – What It Means for Marketers &amp; SEO Pros via @sejournal, @gregjarboe</a></h3>
+        <p>来自 Search Engine Journal：Anthropic&#x27;s 80-fold growth crisis mirrors Google&#x27;s 1999 infrastructure crunch。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('03d7ae283d19a6d0', this)">标记已读</button>
+            <a class="read-link" href="https://www.searchenginejournal.com/anthropics-infrastructure-crisis-what-it-means-for-marketers-seo-pros/574258/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="75c54fd8b0ce5706" data-ts="1778826412" data-category="GEO 趋势">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#0891b2">Aleyda Solis Blog</span>
+            <span class="date">2026-05-15</span>
+        </div>
+        <h3><a href="https://www.aleydasolis.com/en/ai-search/ecommerce-ai-search-citations-optimization/" target="_blank" rel="noopener noreferrer">Ecommerce AI Search Optimization: What Citation and AI Traffic Patterns Across 5 Subverticals Tell Us About Going Beyond PDPs and PLPs</a></h3>
+        <p>来自 Aleyda Solis Blog：There’s a comfortable narrative around ecommerce AI search right now: AI systems。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('75c54fd8b0ce5706', this)">标记已读</button>
+            <a class="read-link" href="https://www.aleydasolis.com/en/ai-search/ecommerce-ai-search-citations-optimization/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    </div>
+    </section>
+    
+    <section class="category-section" id="ai-search">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker" style="color:#7c3aed">🤖 AI 搜索</span>
+                <h2>AI 搜索</h2>
+            </div>
+            <span class="count">24 条</span>
+        </div>
+        <div class="news-grid">
+    <article class="news-card card-item" id="a10a06ee38096130" data-ts="1779183900" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">Google AI Blog</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://blog.google/innovation-and-ai/technology/developers-tools/google-io-2026-collection/" target="_blank" rel="noopener noreferrer">I/O 2026</a></h3>
+        <p>来自 Google AI Blog：At Google I/O 2026, we shared how we’re making AI more helpful for everyone. See eve。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('a10a06ee38096130', this)">标记已读</button>
+            <a class="read-link" href="https://blog.google/innovation-and-ai/technology/developers-tools/google-io-2026-collection/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="fab5cdf2058c76cd" data-ts="1779183900" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">Google AI Blog</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://blog.google/products-and-platforms/products/search/ai-mode-us-insights/" target="_blank" rel="noopener noreferrer">How AI Mode is changing the way people search in the U.S.</a></h3>
+        <p>来自 Google AI Blog：A graphic features the text &quot;How people are using AI Mode in the U.S.&quot; surrounded by。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('fab5cdf2058c76cd', this)">标记已读</button>
+            <a class="read-link" href="https://blog.google/products-and-platforms/products/search/ai-mode-us-insights/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="ffb06bb52eb0e80b" data-ts="1779183900" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">Google AI Blog</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://blog.google/products-and-platforms/products/workspace/workspace-updates/" target="_blank" rel="noopener noreferrer">New ways to create and get things done in Google Workspace</a></h3>
+        <p>来自 Google AI Blog：Google Workspace。可作为本期 SEO、GEO 或 AI 搜索变化的观察线索。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('ffb06bb52eb0e80b', this)">标记已读</button>
+            <a class="read-link" href="https://blog.google/products-and-platforms/products/workspace/workspace-updates/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="a656458c1e64ce0d" data-ts="1779183900" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">Google AI Blog</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://blog.google/innovation-and-ai/sundar-pichai-io-2026/" target="_blank" rel="noopener noreferrer">I/O 2026: Welcome to the agentic Gemini era</a></h3>
+        <p>来自 Google AI Blog：a series of colorful icons representing Google I/O against a black background。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('a656458c1e64ce0d', this)">标记已读</button>
+            <a class="read-link" href="https://blog.google/innovation-and-ai/sundar-pichai-io-2026/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="d5f941ffa0c02b5b" data-ts="1779183900" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">Google AI Blog</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-5/" target="_blank" rel="noopener noreferrer">Gemini 3.5: frontier intelligence with action</a></h3>
+        <p>来自 Google AI Blog：Gemini 3.5 text and multi-colored star icon on an abstract blue background.。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('d5f941ffa0c02b5b', this)">标记已读</button>
+            <a class="read-link" href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-5/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="6684211aa16af99b" data-ts="1779183900" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">Google AI Blog</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://blog.google/products-and-platforms/products/search/search-io-2026/" target="_blank" rel="noopener noreferrer">A new era for AI Search</a></h3>
+        <p>来自 Google AI Blog：Text that reads &quot;The best of a search engine with the best of AI&quot;。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('6684211aa16af99b', this)">标记已读</button>
+            <a class="read-link" href="https://blog.google/products-and-platforms/products/search/search-io-2026/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="2817c8065ecf7e89" data-ts="1779183900" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">Google AI Blog</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://blog.google/products-and-platforms/products/google-one/google-ai-subscriptions/" target="_blank" rel="noopener noreferrer">Everything new in our Google AI subscriptions, fresh from I/O 2026</a></h3>
+        <p>来自 Google AI Blog：The image shows colorful icons. The copy reads: More magic in one plan. More power。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('2817c8065ecf7e89', this)">标记已读</button>
+            <a class="read-link" href="https://blog.google/products-and-platforms/products/google-one/google-ai-subscriptions/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="f373e881efe218e7" data-ts="1779158700" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">OpenAI News</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://openai.com/index/advancing-content-provenance" target="_blank" rel="noopener noreferrer">Advancing content provenance for a safer, more transparent AI ecosystem</a></h3>
+        <p>来自 OpenAI News：OpenAI advances AI content provenance with Content Credentials, SynthID, and a verifica。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('f373e881efe218e7', this)">标记已读</button>
+            <a class="read-link" href="https://openai.com/index/advancing-content-provenance" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="9ad0ef0769bd0b97" data-ts="1779069600" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">OpenAI News</span>
+            <span class="date">2026-05-18</span>
+        </div>
+        <h3><a href="https://openai.com/index/dell-codex-enterprise-partnership" target="_blank" rel="noopener noreferrer">OpenAI and Dell partner to bring Codex to hybrid and on-premise enterprise environments</a></h3>
+        <p>来自 OpenAI News：OpenAI and Dell partner to bring Codex to hybrid and on-premise environments, helping e。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('9ad0ef0769bd0b97', this)">标记已读</button>
+            <a class="read-link" href="https://openai.com/index/dell-codex-enterprise-partnership" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="df236aee22ea31ca" data-ts="1778860800" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">OpenAI News</span>
+            <span class="date">2026-05-16</span>
+        </div>
+        <h3><a href="https://openai.com/index/malta-chatgpt-plus-partnership" target="_blank" rel="noopener noreferrer">OpenAI and Malta partner to bring ChatGPT Plus to all citizens</a></h3>
+        <p>来自 OpenAI News：OpenAI and Malta partner to expand AI access, offering ChatGPT Plus and training to hel。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('df236aee22ea31ca', this)">标记已读</button>
+            <a class="read-link" href="https://openai.com/index/malta-chatgpt-plus-partnership" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="d5848d3fcbcdf323" data-ts="1778774400" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">OpenAI News</span>
+            <span class="date">2026-05-15</span>
+        </div>
+        <h3><a href="https://openai.com/academy/codex-for-work/how-sales-teams-use-codex" target="_blank" rel="noopener noreferrer">How sales teams use Codex</a></h3>
+        <p>来自 OpenAI News：See how sales teams can use Codex to create pipeline briefs, meeting prep packets, fore。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('d5848d3fcbcdf323', this)">标记已读</button>
+            <a class="read-link" href="https://openai.com/academy/codex-for-work/how-sales-teams-use-codex" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="d5a229d53d024fb0" data-ts="1778774400" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">OpenAI News</span>
+            <span class="date">2026-05-15</span>
+        </div>
+        <h3><a href="https://openai.com/index/databricks" target="_blank" rel="noopener noreferrer">Databricks brings GPT-5.5 to enterprise agent workflows</a></h3>
+        <p>来自 OpenAI News：Databricks uses GPT-5.5 for enterprise agent workflows after the model set a new state。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('d5a229d53d024fb0', this)">标记已读</button>
+            <a class="read-link" href="https://openai.com/index/databricks" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="80b9b0a009bfcab6" data-ts="1778774400" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">OpenAI News</span>
+            <span class="date">2026-05-15</span>
+        </div>
+        <h3><a href="https://openai.com/academy/codex-for-work/how-business-operations-teams-use-codex" target="_blank" rel="noopener noreferrer">How business operations teams use Codex</a></h3>
+        <p>来自 OpenAI News：See how business operations teams can use Codex to create initiative briefs, strategy u。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('80b9b0a009bfcab6', this)">标记已读</button>
+            <a class="read-link" href="https://openai.com/academy/codex-for-work/how-business-operations-teams-use-codex" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="fff54e52bb9ac679" data-ts="1778774400" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">OpenAI News</span>
+            <span class="date">2026-05-15</span>
+        </div>
+        <h3><a href="https://openai.com/index/personal-finance-chatgpt" target="_blank" rel="noopener noreferrer">A new personal finance experience in ChatGPT</a></h3>
+        <p>来自 OpenAI News：Preview a new personal finance experience in ChatGPT for Pro users in the U.S. Securely。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('fff54e52bb9ac679', this)">标记已读</button>
+            <a class="read-link" href="https://openai.com/index/personal-finance-chatgpt" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="7786efd07f3760e1" data-ts="1778774400" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">OpenAI News</span>
+            <span class="date">2026-05-15</span>
+        </div>
+        <h3><a href="https://openai.com/academy/codex-for-work/how-data-science-teams-use-codex" target="_blank" rel="noopener noreferrer">How data science teams use Codex</a></h3>
+        <p>来自 OpenAI News：See how data science teams can use Codex to build root-cause briefs, impact readouts, K。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('7786efd07f3760e1', this)">标记已读</button>
+            <a class="read-link" href="https://openai.com/academy/codex-for-work/how-data-science-teams-use-codex" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="5456d31e4643c3ae" data-ts="1778761800" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">OpenAI News</span>
+            <span class="date">2026-05-14</span>
+        </div>
+        <h3><a href="https://openai.com/index/sea-david-chen" target="_blank" rel="noopener noreferrer">Sea&#x27;s View on the Future of Agentic Software Development with Codex</a></h3>
+        <p>来自 OpenAI News：Sea Limited&#x27;s CPO explains why the company is deploying Codex across engineering teams。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('5456d31e4643c3ae', this)">标记已读</button>
+            <a class="read-link" href="https://openai.com/index/sea-david-chen" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="29f841a31fba59b7" data-ts="1778734800" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">OpenAI News</span>
+            <span class="date">2026-05-14</span>
+        </div>
+        <h3><a href="https://openai.com/index/work-with-codex-from-anywhere" target="_blank" rel="noopener noreferrer">Work with Codex from anywhere</a></h3>
+        <p>来自 OpenAI News：Use Codex anywhere with the ChatGPT mobile app. Monitor, steer, and approve coding task。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('29f841a31fba59b7', this)">标记已读</button>
+            <a class="read-link" href="https://openai.com/index/work-with-codex-from-anywhere" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="8f3005d6a8a74c95" data-ts="1778688000" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">OpenAI News</span>
+            <span class="date">2026-05-14</span>
+        </div>
+        <h3><a href="https://openai.com/index/chatgpt-recognize-context-in-sensitive-conversations" target="_blank" rel="noopener noreferrer">Helping ChatGPT better recognize context in sensitive conversations</a></h3>
+        <p>来自 OpenAI News：Learn how new ChatGPT safety updates improve context awareness in sensitive conversatio。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('8f3005d6a8a74c95', this)">标记已读</button>
+            <a class="read-link" href="https://openai.com/index/chatgpt-recognize-context-in-sensitive-conversations" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="db8dba40cdd1030f" data-ts="1778661118" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">Microsoft Bing Blog</span>
+            <span class="date">2026-05-13</span>
+        </div>
+        <h3><a href="https://blogs.bing.com/search/May-2026/Keeping-Trusted-Content-Visible-in-an-AI-Powered-Search-World" target="_blank" rel="noopener noreferrer">Keeping Trusted Content Visible in an AI-Powered Search World</a></h3>
+        <p>来自 Microsoft Bing Blog：In an AI-powered search world, visibility is responsibility. Bing is rethinking。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('db8dba40cdd1030f', this)">标记已读</button>
+            <a class="read-link" href="https://blogs.bing.com/search/May-2026/Keeping-Trusted-Content-Visible-in-an-AI-Powered-Search-World" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="0dd10f16b9acca12" data-ts="1778641200" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">OpenAI News</span>
+            <span class="date">2026-05-13</span>
+        </div>
+        <h3><a href="https://openai.com/index/building-codex-windows-sandbox" target="_blank" rel="noopener noreferrer">Building a safe, effective sandbox to enable Codex on Windows</a></h3>
+        <p>来自 OpenAI News：Learn how OpenAI built a secure sandbox for Codex on Windows, enabling safe, efficient。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('0dd10f16b9acca12', this)">标记已读</button>
+            <a class="read-link" href="https://openai.com/index/building-codex-windows-sandbox" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="0cee1d9d06cf159c" data-ts="1778450400" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">Google AI Blog</span>
+            <span class="date">2026-05-11</span>
+        </div>
+        <h3><a href="https://blog.google/products-and-platforms/products/search/ai-powered-google-finance-in-europe/" target="_blank" rel="noopener noreferrer">The new AI-powered Google Finance is expanding to Europe.</a></h3>
+        <p>来自 Google AI Blog：A screenshot of the AI-powered experience on Google Finance.。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('0cee1d9d06cf159c', this)">标记已读</button>
+            <a class="read-link" href="https://blog.google/products-and-platforms/products/search/ai-powered-google-finance-in-europe/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="abcaeae15d2b7831" data-ts="1778223600" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">Google AI Blog</span>
+            <span class="date">2026-05-08</span>
+        </div>
+        <h3><a href="https://blog.google/company-news/inside-google/company-announcements/the-small-brief/" target="_blank" rel="noopener noreferrer">See what happens when creative legends use AI to make ads for small businesses.</a></h3>
+        <p>来自 Google AI Blog：black and white card with headshots of susan credle, jayonta jenkins and tiffany rol。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('abcaeae15d2b7831', this)">标记已读</button>
+            <a class="read-link" href="https://blog.google/company-news/inside-google/company-announcements/the-small-brief/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="7f5c8fafa4094a82" data-ts="1778054400" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">Google AI Blog</span>
+            <span class="date">2026-05-06</span>
+        </div>
+        <h3><a href="https://blog.google/products-and-platforms/products/search/gardening-tips/" target="_blank" rel="noopener noreferrer">5 gardening tips you can try right in Search</a></h3>
+        <p>来自 Google AI Blog：An abstract background featuring soft, stippled illustrations of flowers and a butte。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('7f5c8fafa4094a82', this)">标记已读</button>
+            <a class="read-link" href="https://blog.google/products-and-platforms/products/search/gardening-tips/" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="673b418fb9b568a2" data-ts="1778054276" data-category="AI 搜索">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#7c3aed">Microsoft Bing Blog</span>
+            <span class="date">2026-05-06</span>
+        </div>
+        <h3><a href="https://blogs.bing.com/search/May-2026/Evolving-role-of-the-index-From-ranking-pages-to-supporting-answers" target="_blank" rel="noopener noreferrer">Evolving role of the index: From ranking pages to supporting answers</a></h3>
+        <p>来自 Microsoft Bing Blog：Search indexing was built to help humans decide what to read. Grounding is bein。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('673b418fb9b568a2', this)">标记已读</button>
+            <a class="read-link" href="https://blogs.bing.com/search/May-2026/Evolving-role-of-the-index-From-ranking-pages-to-supporting-answers" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    </div>
+    </section>
+    
+    <section class="category-section" id="china">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker" style="color:#dc2626">CN 国内资讯</span>
+                <h2>国内资讯</h2>
+            </div>
+            <span class="count">12 条</span>
+        </div>
+        <div class="news-grid">
+    <article class="news-card card-item" id="79332fd8c5d391dc" data-ts="1779212693" data-category="国内资讯">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#dc2626">36Kr</span>
+            <span class="date">2026-05-20</span>
+        </div>
+        <h3><a href="https://36kr.com/newsflashes/3816962733229191?f=rss" target="_blank" rel="noopener noreferrer">扩博智能Sparrow刷新两项海上风电纪录</a></h3>
+        <p>来自 36Kr：36氪获悉，2026年5月，在丹麦北海的海上风电运维作业中，扩博智能Sparrow机器人刷新了两项行业纪录：在6天内完成29片叶片修复，单片最快修复时间仅38分钟，单日最高修复量达6片。这。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('79332fd8c5d391dc', this)">标记已读</button>
+            <a class="read-link" href="https://36kr.com/newsflashes/3816962733229191?f=rss" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="90ff34cafe7aec52" data-ts="1779212566" data-category="国内资讯">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#dc2626">36Kr</span>
+            <span class="date">2026-05-20</span>
+        </div>
+        <h3><a href="https://36kr.com/newsflashes/3816970108322689?f=rss" target="_blank" rel="noopener noreferrer">段永平1380亿元持仓曝光，一季度新进特斯拉</a></h3>
+        <p>来自 36Kr：根据美股机构投资者13F持仓披露情况，截至2026年一季度末，段永平管理的H&amp;H International Investment持仓总市值约200.04亿美元，折合人民币约1380亿元。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('90ff34cafe7aec52', this)">标记已读</button>
+            <a class="read-link" href="https://36kr.com/newsflashes/3816970108322689?f=rss" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="333bbf4e94b53dfe" data-ts="1779211800" data-category="国内资讯">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#dc2626">36Kr</span>
+            <span class="date">2026-05-20</span>
+        </div>
+        <h3><a href="https://36kr.com/p/3814411349581316?f=rss" target="_blank" rel="noopener noreferrer">做出百万台割草机器人后，未岚大陆CEO决定让自己变得“不重要”｜硬氪专访</a></h3>
+        <p>来自 36Kr：作者｜黄楠 编辑｜袁斯来 未岚大陆CEO任冠佼等了7年，等到了行业的爆发。 他还记得，2019年刚进入无边界智能割草机器人赛道，自己“只是觉得这个方向一定能火”。 到2021年第一代产品推。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('333bbf4e94b53dfe', this)">标记已读</button>
+            <a class="read-link" href="https://36kr.com/p/3814411349581316?f=rss" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="6992e6d2750b827a" data-ts="1779211287" data-category="国内资讯">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#dc2626">36Kr</span>
+            <span class="date">2026-05-20</span>
+        </div>
+        <h3><a href="https://36kr.com/p/3816909945029760?f=rss" target="_blank" rel="noopener noreferrer">要做数字劳动力生产工厂，「未来式智能」完成Pre-A轮融资</a></h3>
+        <p>来自 36Kr：文｜王欣逸 编辑｜邓咏仪 36氪获悉，未来式智能（AutoAgents.ai）近日完成Pre-A轮融资，新进投资方包括凡创资本、中关村资本、探元资本，老股东东证创新、麟阁创投跟投，本轮融资。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('6992e6d2750b827a', this)">标记已读</button>
+            <a class="read-link" href="https://36kr.com/p/3816909945029760?f=rss" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="633f561e4ffc7bef" data-ts="1779211243" data-category="国内资讯">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#dc2626">36Kr</span>
+            <span class="date">2026-05-20</span>
+        </div>
+        <h3><a href="https://36kr.com/p/3816947890471812?f=rss" target="_blank" rel="noopener noreferrer">早期项目 | Chance AI获美图等数百万美元投资，用户数已达20万</a></h3>
+        <p>来自 36Kr：作者丨欧雪 编辑丨袁斯来 硬氪获悉，Visual Agent（视觉智能体）创业公司Chance AI宣布完成数百万美元天使轮融资。本轮由美图领投，NYX Ventures、阿里系投资机构等。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('633f561e4ffc7bef', this)">标记已读</button>
+            <a class="read-link" href="https://36kr.com/p/3816947890471812?f=rss" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="da20cf863a2ea3b6" data-ts="1779207610" data-category="国内资讯">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#dc2626">36Kr</span>
+            <span class="date">2026-05-20</span>
+        </div>
+        <h3><a href="https://36kr.com/p/3816885092910212?f=rss" target="_blank" rel="noopener noreferrer">8点1氪丨谷歌推出Gemini 3.5系列模型；DeepSeek回应用户“对话泄露”疑虑；全国存款十强城市出炉</a></h3>
+        <p>来自 36Kr：今日热点导览 谷歌推出Gemini 3.5系列模型 洁丽雅回应豪门内斗传闻，“毛巾少爷”1个月带货超500万元 巨力索具连续第二日跌停 前三星芯片负责人：明年内存将降价 自费流感疫苗也可使。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('da20cf863a2ea3b6', this)">标记已读</button>
+            <a class="read-link" href="https://36kr.com/p/3816885092910212?f=rss" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="0c51653a98b2b83e" data-ts="1779206562" data-category="国内资讯">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#dc2626">36Kr</span>
+            <span class="date">2026-05-20</span>
+        </div>
+        <h3><a href="https://36kr.com/p/3816045694098952?f=rss" target="_blank" rel="noopener noreferrer">当“躺平”、Gap被歧视，我们该如何度过奥德赛时期？ | 职场极端气候 ②</a></h3>
+        <p>来自 36Kr：图源：公众号「有三思 U Sense」） 2026年2月，小红书博主橘一橙NiceFriend发布了一条视频。她在视频里把 奥德赛时期 定义为“对事业、情感以及身份认同产生强烈焦虑和迷茫的。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('0c51653a98b2b83e', this)">标记已读</button>
+            <a class="read-link" href="https://36kr.com/p/3816045694098952?f=rss" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="afcfc22e91a7e354" data-ts="1779160132" data-category="国内资讯">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#dc2626">36Kr</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://36kr.com/p/3816109626138119?f=rss" target="_blank" rel="noopener noreferrer">氪星晚报 ｜SpaceX即将成为马斯克旗下第二家上市公司；京东、洋河集团等在宿迁成立新动能股权投资基金，出资额10亿</a></h3>
+        <p>来自 36Kr：大公司： 圆通速递：4月快递产品收入60.71亿元，同比增长5.49% 36氪获悉，圆通速递公告，4月快递产品收入60.71亿元，同比增长5.49%；业务完成量27.26亿票，同比增长1.。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('afcfc22e91a7e354', this)">标记已读</button>
+            <a class="read-link" href="https://36kr.com/p/3816109626138119?f=rss" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="5d6c1ed25ea5c4d1" data-ts="1779155709" data-category="国内资讯">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#dc2626">36Kr</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://36kr.com/p/3816036564147718?f=rss" target="_blank" rel="noopener noreferrer">裸辞九个月，降薪跳槽，一个80后营销人如何“上岸甲方”？｜百万年薪系列013</a></h3>
+        <p>来自 36Kr：图源：公众号「有三思 U Sense」） 2023年秋，杭州亚运会湖州赛区。于成龙手持亚运火炬跑过城市街巷，掌心传来的温度让他想起十四年前，那个没有暖气的冬天。 彼时他在河南安阳的一间出租。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('5d6c1ed25ea5c4d1', this)">标记已读</button>
+            <a class="read-link" href="https://36kr.com/p/3816036564147718?f=rss" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="47941066fe2b73fa" data-ts="1779145110" data-category="国内资讯">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#dc2626">36Kr</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://36kr.com/p/3815841756028425?f=rss" target="_blank" rel="noopener noreferrer">影石：重新定义性价比</a></h3>
+        <p>来自 36Kr：作者 | 张帆 坚持做后来者 近日，影石创新发布了登陆资本市场后的首份年报。2025年，公司实现营业收入97.41亿元，同比大幅增长74.76%，创下成立以来的最高营收纪录。然而，同期由于。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('47941066fe2b73fa', this)">标记已读</button>
+            <a class="read-link" href="https://36kr.com/p/3815841756028425?f=rss" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="e3aa563bdd0f3444" data-ts="1779127200" data-category="国内资讯">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#dc2626">36Kr</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://36kr.com/p/3814860909600261?f=rss" target="_blank" rel="noopener noreferrer">鲸跃动力获星海图数千万元种子轮投资，用「数据+模型+末端执行」打造开箱即用的Robo Labor丨涌现新项目</a></h3>
+        <p>来自 36Kr：文｜王欣逸 编辑｜邱晓芬 一句话介绍 鲸跃动力成立于2026年，以「数据+模型+末端执行」闭环，提供面向场景、可快速部署的Robo Labor（机器人劳动力），让物理劳动力像AWS算力一样。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('e3aa563bdd0f3444', this)">标记已读</button>
+            <a class="read-link" href="https://36kr.com/p/3814860909600261?f=rss" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="8f68e7de6e59a763" data-ts="1779125400" data-category="国内资讯">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#dc2626">36Kr</span>
+            <span class="date">2026-05-19</span>
+        </div>
+        <h3><a href="https://36kr.com/p/3805660478184966?f=rss" target="_blank" rel="noopener noreferrer">高瓴出手了一家AI体育科技公司，曾获李泽湘天使轮融资｜硬氪首发</a></h3>
+        <p>来自 36Kr：作者｜黄楠 编辑｜袁斯来 硬氪获悉，AI体育科技公司SportVision近日已完成天使+轮融资，高瓴创投（GL Ventures）领投，谦恒资本担任独家财务顾问。本轮资金将重点用于核心技。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('8f68e7de6e59a763', this)">标记已读</button>
+            <a class="read-link" href="https://36kr.com/p/3805660478184966?f=rss" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    </div>
+    </section>
+    
+    <section class="category-section" id="experts">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker" style="color:#111827">𝕏 专家动态</span>
+                <h2>专家动态</h2>
+            </div>
+            <span class="count">3 条</span>
+        </div>
+        <div class="news-grid">
+    <article class="news-card card-item" id="615a08afb89b4b02" data-ts="1779241942" data-category="专家动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#111827">Aleyda Solis</span>
+            <span class="date">2026-05-20</span>
+        </div>
+        <h3><a href="https://x.com/Aleyda" target="_blank" rel="noopener noreferrer">Aleyda Solis 最新观点入口</a></h3>
+        <p>国际 SEO 顾问，适合跟踪技术 SEO、国际化 SEO 与 AI Search 相关讨论。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('615a08afb89b4b02', this)">标记已读</button>
+            <a class="read-link" href="https://x.com/Aleyda" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="342879ed717b5b8d" data-ts="1779241942" data-category="专家动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#111827">Lily Ray</span>
+            <span class="date">2026-05-20</span>
+        </div>
+        <h3><a href="https://x.com/lilyraynyc" target="_blank" rel="noopener noreferrer">Lily Ray 最新观点入口</a></h3>
+        <p>关注 Google 更新、内容质量、E-E-A-T 与搜索可见性变化。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('342879ed717b5b8d', this)">标记已读</button>
+            <a class="read-link" href="https://x.com/lilyraynyc" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    
+    <article class="news-card card-item" id="212e6a76fa3829f6" data-ts="1779241942" data-category="专家动态">
+        <div class="card-top">
+            <span class="source-pill" style="--accent:#111827">Zara Zhang</span>
+            <span class="date">2026-05-20</span>
+        </div>
+        <h3><a href="https://x.com/zarazhangrui" target="_blank" rel="noopener noreferrer">Zara Zhang 最新观点入口</a></h3>
+        <p>适合关注 AI 产品、全球科技趋势与中文语境下的 AI 讨论。</p>
+        <div class="card-actions">
+            <button class="ghost-btn btn-read" type="button" onclick="toggleRead('212e6a76fa3829f6', this)">标记已读</button>
+            <a class="read-link" href="https://x.com/zarazhangrui" target="_blank" rel="noopener noreferrer">阅读全文</a>
+            
+        </div>
+    </article>
+    </div>
+    </section>
+    
+            <div class="footer-note">生成时间：2026-05-20 09:52，窗口：近 14 天。可在 GitHub Actions 手动运行或按计划自动更新。</div>
         </main>
-        
+    </div>
     <script>
-        let db = JSON.parse(localStorage.getItem('seo_dashboard_v6') || '{"read":[]}');
-        function save() { localStorage.setItem('seo_dashboard_v6', JSON.stringify(db)); }
+        const storeKey = "seo_news_monitor_v2";
+        const state = JSON.parse(localStorage.getItem(storeKey) || '{"read":[]}');
+        const cards = Array.from(document.querySelectorAll(".card-item"));
+        const buttons = Array.from(document.querySelectorAll(".filter-btn"));
+        const searchInput = document.getElementById("searchInput");
+        let activeDays = 7;
+
+        function save() {
+            localStorage.setItem(storeKey, JSON.stringify(state));
+        }
+
         function toggleRead(id, btn) {
-            if (!db.read.includes(id)) {
-                db.read.push(id);
-                const card = document.getElementById(id);
-                if (card) card.classList.add('is-read');
-                btn.innerText = '已读';
-                save();
-            }
+            if (!state.read.includes(id)) state.read.push(id);
+            const card = document.getElementById(id);
+            if (card) card.classList.add("is-read");
+            btn.innerText = "已读";
+            save();
         }
-        function applyDaysFilter(days) {
+
+        function applyFilters() {
             const now = Math.floor(Date.now() / 1000);
-            document.querySelectorAll('.card-item').forEach(card => {
-                const ts = parseInt(card.dataset.ts);
-                const visible = (now - ts) <= (days * 86400);
-                card.style.display = visible ? 'flex' : 'none';
+            const query = (searchInput.value || "").trim().toLowerCase();
+            cards.forEach(card => {
+                const inWindow = (now - Number(card.dataset.ts)) <= activeDays * 86400;
+                const matches = !query || card.innerText.toLowerCase().includes(query);
+                card.style.display = inWindow && matches ? "flex" : "none";
             });
         }
-        window.onload = () => {
-            db.read.forEach(id => {
-                const card = document.getElementById(id);
-                if (card) {
-                    card.classList.add('is-read');
-                    const btn = card.querySelector('.btn-read');
-                    if (btn) btn.innerText = '已读';
-                }
+
+        state.read.forEach(id => {
+            const card = document.getElementById(id);
+            if (!card) return;
+            card.classList.add("is-read");
+            const btn = card.querySelector(".btn-read");
+            if (btn) btn.innerText = "已读";
+        });
+
+        buttons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                buttons.forEach(item => item.classList.remove("active"));
+                btn.classList.add("active");
+                activeDays = Number(btn.dataset.days);
+                applyFilters();
             });
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    applyDaysFilter(parseInt(e.target.dataset.days));
-                });
-            });
-            applyDaysFilter(7);
-        };
+        });
+        searchInput.addEventListener("input", applyFilters);
+        applyFilters();
     </script>
-    
-    </body>
-    </html>
-    
+</body>
+</html>
