@@ -317,18 +317,23 @@ def insight_rows(items):
 
 
 def health_rows(source_health):
+    """Only show sources that fetched items (ok/warning) or have errors — skip truly silent ones."""
     out = []
     e = html.escape
     for s in source_health:
+        if s["state"] == "empty" and not s["error"]:
+            continue  # silently skip sources with no new items and no error
         out.append(
             '<tr>'
             '<td class="td-muted">' + e(s["category"]) + '</td>'
             '<td><a href="' + e(s["url"]) + '" target="_blank" class="src-link">' + e(s["source"]) + '</a></td>'
             '<td>' + status_badge(s["state"]) + '</td>'
             '<td class="td-num">' + str(s["count"]) + '</td>'
-            '<td class="td-err">' + e(s["error"] or "OK") + '</td>'
+            '<td class="td-err">' + e(s["error"] or "—") + '</td>'
             '</tr>'
         )
+    if not out:
+        return '<tr><td colspan="5" style="color:var(--dim);padding:12px 8px;font-size:12px">All sources healthy, no issues to report.</td></tr>'
     return "".join(out)
 
 
@@ -604,20 +609,18 @@ tr:last-child td{border-bottom:none}
       <div class="stat" style="--ac:#dc2626"><div class="stat-label">Need Attention</div><div class="stat-val">ERRORS_PLACEHOLDER</div></div>
       <div class="stat" style="--ac:#7c3aed"><div class="stat-label">Latest Item</div><div class="stat-val sm">LATEST_PLACEHOLDER</div></div>
     </div>
-    <div class="home-panels">
-      <div class="panel">
-        <div class="panel-title"><span class="pticon">&#9889;</span> This Week's Highlights</div>
-        INSIGHTS_PLACEHOLDER
+    <div class="panel" style="margin-bottom:16px">
+      <div class="panel-title"><span class="pticon">&#129322;</span> Source Health &mdash; Active &amp; Issues Only</div>
+      <div class="health-wrap">
+        <table>
+          <thead><tr><th>Category</th><th>Source</th><th>Status</th><th>Items</th><th>Note</th></tr></thead>
+          <tbody>HEALTH_PLACEHOLDER</tbody>
+        </table>
       </div>
-      <div class="panel">
-        <div class="panel-title"><span class="pticon">&#129322;</span> Source Health</div>
-        <div class="health-wrap">
-          <table>
-            <thead><tr><th>Category</th><th>Source</th><th>Status</th><th>Items</th><th>Note</th></tr></thead>
-            <tbody>HEALTH_PLACEHOLDER</tbody>
-          </table>
-        </div>
-      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="pticon">&#9889;</span> This Week's Highlights</div>
+      INSIGHTS_PLACEHOLDER
     </div>
   </div>
   SECTIONS_PLACEHOLDER
