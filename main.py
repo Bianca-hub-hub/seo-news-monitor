@@ -136,41 +136,43 @@ def generate_ai_summary(client, item):
 
 def generate_weekly_digest(client, category, items):
     """
-    Returns a dict:
-      {
-        "paragraphs": [{"text": str, "refs": [{"title":str,"link":str,"source":str}]}],
-        "date_range": str,
-        "count": int,
-      }
-    Each paragraph is an analysis chunk followed by its source references.
+    Returns a dict with keys:
+      paragraphs: list of {"html": str}  — each para is HTML with inline <a> links
+      date_range: str
+      count: int
+      ai_generated: bool
     """
+    import re as _re
+
     if not items:
         return {}
 
     date_range = f"{min(i['date_str'] for i in items)} ~ {max(i['date_str'] for i in items)}"
     result_base = {"date_range": date_range, "count": len(items)}
 
-    # Build input for AI: include title + summary + link index
+    # Build numbered reference list for AI
+    ref_map = {}
     lines = []
-    ref_map = {}  # index -> item
-    for idx, i in enumerate(items[:15], 1):
-        raw = normalize_text(i.get("raw_summary", "") or i.get("summary", ""))[:400]
-        lines.append(f"[{idx}] 来源:{i['source']} | 标题:{i['title']} | 摘要:{raw}")
-        ref_map[idx] = i
+    for idx, item in enumerate(items[:15], 1):
+        raw = normalize_text(item.get("raw_summary", "") or item.get("summary", ""))[:350]
+        lines.append(f"[{idx}] [{item['source']}] {item['title']}\n    摘要: {raw}")
+        ref_map[idx] = item
 
     digest_input = "\n".join(lines)
     model = os.environ.get("OPENAI_MODEL", "claude-sonnet-4-6")
 
     prompt = (
-        f"你是资深SEO/AI搜索行业分析师。以下是「{category}」板块本周（{date_range}）的文章（编号[1]-[{len(ref_map)}]）：\n\n"
+        f"你是资深SEO/AI搜索行业分析师。\n"
+        f"以下是「{category}」板块本周（{date_range}）的{len(ref_map)}篇文章：\n\n"
         f"{digest_input}\n\n"
-        "请写一篇中文本周综述，格式要求：\n"
-        "- 分2-4个段落，每段聚焦一个主题/趋势\n"
-        "- 每段结尾用 [引用编号] 标注来源，如：...值得关注。[1][3]\n"
-        "- 语言专业简洁，有分析视角，指出对SEO从业者的实际影响\n"
-        "- 总字数200-400字\n"
-        "- 只输出正文段落，不要标题，不要bullet points\n"
-        "- 段落之间用空行分隔"
+        "请用中文写一篇本周资讯综述，要求：\n"
+        "1. 500-800字，3-5个自然段，每段聚焦一个主题或趋势\n"
+        "2. 用分析性语言写，有观点，不是标题堆砌\n"
+        "3. 在正文里自然地引用文章时，用 [REF:编号] 标注，例如：Google本周发布了新的AI搜索指南 [REF:2]，指出...\n"
+        "4. 每段可以有1-3个引用，引用紧跟在相关观点后面\n"
+        "5. 结尾一段总结本周最值得关注的核心趋势\n"
+        "6. 段落之间用空行分隔\n"
+        "7. 只输出正文，不要加标题"
     )
 
     ai_text = ""
@@ -179,53 +181,68 @@ def generate_weekly_digest(client, category, items):
             resp = client.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system", "content": "你是专业的SEO/AI搜索行业分析师，写作风格简洁专业。"},
+                    {"role": "system", "content": "你是专业的SEO/AI搜索领域分析师，写作风格专业、有观点、易读。"},
                     {"role": "user", "content": prompt},
                 ],
-                temperature=0.35,
-                max_tokens=800,
+                temperature=0.4,
+                max_tokens=1200,
             )
-            ai_text = normalize_text(resp.choices[0].message.content or "")
-            print(f"[OK] Digest generated for {category}: {len(ai_text)} chars")
+            ai_text = (resp.choices[0].message.content or "").strip()
+            print(f"[OK] Digest for {category}: {len(ai_text)} chars")
         except Exception as exc:
-            print(f"[WARN] Weekly digest API failed for {category}: {type(exc).__name__}: {exc}")
+            print(f"[WARN] Digest API failed for {category}: {type(exc).__name__}: {exc}")
 
-    if not ai_text or len(ai_text) < 50:
-        # Structured fallback: group items by source and write a basic digest
-        by_source = {}
-        for i in items[:12]:
-            by_source.setdefault(i["source"], []).append(i)
-        paras = []
-        for src, src_items in list(by_source.items())[:4]:
-            chunk_titles = "、".join("《" + x["title"][:40] + "》" for x in src_items[:2])
-            paras.append({
-                "text": f"{src} 本周发布了关于 {chunk_titles} 等内容。",
-                "refs": [{"title": x["title"], "link": x["link"], "source": x["source"]} for x in src_items[:3]],
-            })
-        result_base["paragraphs"] = paras
-        result_base["ai_generated"] = False
+    def refs_to_html(text):
+        """Convert [REF:N] markers to inline clickable links."""
+        def replace_ref(m):
+            idx = int(m.group(1))
+            item = ref_map.get(idx)
+            if not item:
+                return ""
+            title_short = item["title"][:50] + ("…" if len(item["title"]) > 50 else "")
+            return (
+                '<a class="inline-ref" href="' + html.escape(item["link"]) + '" '
+                'target="_blank" rel="noopener noreferrer" '
+                'title="' + html.escape(item["title"]) + '">'
+                '<span class="inline-ref-source">' + html.escape(item["source"]) + '</span>'
+                + html.escape(title_short) + '</a>'
+            )
+        return _re.sub(r"\[REF:(\d+)\]", replace_ref, text)
+
+    if ai_text and len(ai_text) > 100:
+        # Split on blank lines to get paragraphs, preserve line breaks within
+        raw_paras = [p.strip() for p in _re.split(r"\n{2,}", ai_text) if p.strip()]
+        paragraphs = []
+        for para in raw_paras:
+            para_html = refs_to_html(html.escape(para).replace("\n", "<br>"))
+            paragraphs.append({"html": para_html})
+        result_base["paragraphs"] = paragraphs
+        result_base["ai_generated"] = True
         return result_base
 
-    # Parse AI text: split on blank lines into paragraphs, extract [N] refs
-    import re as _re
-    raw_paras = [p.strip() for p in _re.split(r"\n\s*\n", ai_text) if p.strip()]
-    paragraphs = []
-    for para in raw_paras:
-        ref_indices = [int(m) for m in _re.findall(r"\[(\d+)\]", para)]
-        clean_text = _re.sub(r"\[\d+\]", "", para).strip()
-        refs = []
-        seen_links = set()
-        for idx in ref_indices:
-            item = ref_map.get(idx)
-            if item and item["link"] not in seen_links:
-                refs.append({"title": item["title"], "link": item["link"], "source": item["source"]})
-                seen_links.add(item["link"])
-        paragraphs.append({"text": clean_text, "refs": refs})
-
-    result_base["paragraphs"] = paragraphs
-    result_base["ai_generated"] = True
+    # Fallback: write a basic structured summary without AI
+    print(f"[INFO] Using fallback digest for {category}")
+    # Group by source, pick top items
+    top_items = items[:8]
+    # Build a readable paragraph per 3 items
+    paras = []
+    chunk_size = 3
+    for i in range(0, min(len(top_items), 9), chunk_size):
+        chunk = top_items[i:i+chunk_size]
+        parts = []
+        for item in chunk:
+            ref_html = (
+                '<a class="inline-ref" href="' + html.escape(item["link"]) + '" '
+                'target="_blank" rel="noopener noreferrer">'
+                '<span class="inline-ref-source">' + html.escape(item["source"]) + '</span>'
+                + html.escape(item["title"][:50]) + ('…' if len(item["title"]) > 50 else '') + '</a>'
+            )
+            summary = html.escape(item.get("summary", "")[:80])
+            parts.append(ref_html + "：" + summary)
+        paras.append({"html": "　　" + "；".join(parts) + "。"})
+    result_base["paragraphs"] = paras
+    result_base["ai_generated"] = False
     return result_base
-
 
 def parse_entry_date(entry, fallback):
     dt = entry.get("published_parsed") or entry.get("updated_parsed")
@@ -349,7 +366,8 @@ def item_card(item):
         '<h3><a href="' + e(item["link"]) + '" target="_blank" rel="noopener noreferrer">' + e(item["title"]) + '</a></h3>'
         '<p>' + e(item["summary"]) + '</p>'
         '<div class="card-foot">'
-        '<button class="btn-mark" onclick="toggleRead(\'' + item["id"] + '\',this)">Mark read</button>'
+        '<button class="btn-mark" onclick="markRead(\'' + item["id"] + '\')">Mark read</button>'
+        '<button class="btn-unread" onclick="markUnread(\'' + item["id"] + '\')">标为未读</button>'
         '<a class="btn-open" href="' + e(item["link"]) + '" target="_blank" rel="noopener noreferrer">Read &rarr;' + video + '</a>'
         '</div>'
         '</article>'
@@ -389,17 +407,8 @@ def page_section(category, items, digest=None):
                 ai_badge = '<span class="digest-ai-badge digest-ai-fallback">自动整理</span>'
             paras_html = ""
             for para in digest["paragraphs"]:
-                paras_html += '<p class="digest-para">' + e(para["text"]) + '</p>'
-                if para.get("refs"):
-                    paras_html += '<div class="digest-refs">'
-                    for ref in para["refs"]:
-                        short = ref["title"][:60] + ("…" if len(ref["title"]) > 60 else "")
-                        paras_html += (
-                            '<a class="digest-ref-link" href="' + e(ref["link"]) + '" target="_blank" rel="noopener noreferrer">'
-                            '<span class="ref-source">' + e(ref["source"]) + '</span>'
-                            + e(short) + '</a>'
-                        )
-                    paras_html += '</div>'
+                # para["html"] is pre-built HTML with safe inline ref links
+                paras_html += '<p class="digest-para">' + para["html"] + '</p>'
             digest_html = (
                 '<div class="digest-box" style="--ac:' + meta["accent"] + ';--lc:' + meta["light"] + '">'
                 '<div class="digest-header">'
@@ -424,7 +433,18 @@ def page_section(category, items, digest=None):
         '<span class="section-count">' + str(len(items)) + ' items</span>'
         '</div>'
         + digest_html +
-        '<div class="' + grid_cls + '">' + inner + '</div>'
+        '<div class="section-read-bar">'
+        '<div class="read-tabs">'
+        '<button class="read-tab active" onclick="setSectionFilter(\'' + meta["slug"] + '\',\'all\')">全部</button>'
+        '<button class="read-tab" onclick="setSectionFilter(\'' + meta["slug"] + '\',\'unread\')"><span class="unread-dot"></span> 未读</button>'
+        '<button class="read-tab" onclick="setSectionFilter(\'' + meta["slug"] + '\',\'read\')">已读</button>'
+        '</div>'
+        '<div class="day-tabs" style="margin-left:auto">'
+        '<button class="day-tab active" data-section="' + meta["slug"] + '" data-days="7" onclick="setSectionDays(\'' + meta["slug"] + '\',7,this)">7天</button>'
+        '<button class="day-tab" data-section="' + meta["slug"] + '" data-days="30" onclick="setSectionDays(\'' + meta["slug"] + '\',30,this)">30天</button>'
+        '<button class="day-tab" data-section="' + meta["slug"] + '" data-days="90" onclick="setSectionDays(\'' + meta["slug"] + '\',90,this)">3个月</button>'
+        '</div></div>'
+        '<div class="' + grid_cls + '" id="grid-' + meta["slug"] + '">' + inner + '</div>'
         '</section>'
     )
 
@@ -722,24 +742,45 @@ tr:last-child td{border-bottom:none}
 .digest-body{font-size:14px;line-height:1.9;color:var(--text)}
 .digest-para{margin-bottom:10px}
 .digest-para:last-child{margin-bottom:0}
-.digest-refs{
-  display:flex;flex-wrap:wrap;gap:6px;
-  margin-bottom:14px;margin-top:6px;padding-left:2px;
+.inline-ref{
+  display:inline-flex;align-items:baseline;gap:4px;
+  background:color-mix(in srgb,var(--ac,#2563eb) 9%,#fff);
+  border:1px solid color-mix(in srgb,var(--ac,#2563eb) 22%,transparent);
+  border-radius:5px;padding:2px 8px 2px 6px;
+  font-size:12.5px;color:var(--text);
+  vertical-align:middle;margin:0 2px;
+  transition:all .12s;max-width:280px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
 }
-.digest-ref-link{
-  display:inline-flex;align-items:center;gap:5px;
-  background:color-mix(in srgb,var(--ac,#2563eb) 8%,#fff);
-  border:1px solid color-mix(in srgb,var(--ac,#2563eb) 20%,transparent);
-  border-radius:6px;padding:4px 10px;
-  font-size:12px;color:var(--text);line-height:1.3;
-  transition:all .12s;max-width:320px;
-}
-.digest-ref-link:hover{background:color-mix(in srgb,var(--ac,#2563eb) 15%,#fff);color:var(--ac,#2563eb)}
-.ref-source{
+.inline-ref:hover{background:color-mix(in srgb,var(--ac,#2563eb) 16%,#fff);color:var(--ac,#2563eb);border-color:var(--ac,#2563eb)}
+.inline-ref-source{
   font-size:10px;font-weight:700;font-family:var(--mono);
   color:var(--ac,#2563eb);white-space:nowrap;flex-shrink:0;
+  background:color-mix(in srgb,var(--ac,#2563eb) 15%,transparent);
+  border-radius:3px;padding:0 4px;margin-right:2px;
 }
 
+.read-filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.read-tabs{display:flex;background:var(--surface2);border-radius:var(--rs);padding:3px;gap:2px}
+.read-tab{border:none;background:transparent;color:var(--muted);border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;display:flex;align-items:center;gap:6px}
+.read-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.read-tab .tab-cnt{font-size:11px;font-family:var(--mono);background:var(--surface2);color:var(--dim);border-radius:99px;padding:1px 6px}
+.read-tab.active .tab-cnt{background:#dbeafe;color:var(--blue)}
+.unread-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);flex-shrink:0}
+.time-group{margin-bottom:28px}
+.time-group-label{
+  display:flex;align-items:center;gap:10px;
+  font-size:11px;font-weight:700;font-family:var(--mono);
+  color:var(--muted);text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:12px;
+}
+.time-group-label::after{content:"";flex:1;height:1px;background:var(--border)}
+.card.is-read .card-title a{color:var(--dim)}
+.card.is-read .card-summary{color:var(--dim)}
+.btn-unread{border:1px solid var(--border2);background:#fff;color:var(--dim);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:var(--font);transition:all .12s;display:none}
+.card.is-read .btn-unread{display:inline-block}
+.card.is-read .btn-mark{display:none}
+.section-read-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 @media(max-width:1000px){.home-panels{grid-template-columns:1fr}}
 @media(max-width:900px){
   .shell{grid-template-columns:1fr}
@@ -772,9 +813,16 @@ tr:last-child td{border-bottom:none}
     <div class="toolbar">
       <input id="searchInput" class="search-box" type="search" placeholder="Search across all articles&hellip;">
       <div class="day-tabs">
-        <button class="day-tab" data-days="3">3d</button>
-        <button class="day-tab active" data-days="7">7d</button>
-        <button class="day-tab" data-days="WINDOW_DAYS_PLACEHOLDER">WINDOW_DAYS_PLACEHOLDERd</button>
+        <button class="day-tab active" data-days="7">7 天</button>
+        <button class="day-tab" data-days="30">30 天</button>
+        <button class="day-tab" data-days="90">3 个月</button>
+      </div>
+    </div>
+    <div class="read-filter-bar">
+      <div class="read-tabs">
+        <button class="read-tab active" id="tab-all" onclick="setReadFilter('all')"><span class="tab-cnt" id="cnt-all">0</span> 全部</button>
+        <button class="read-tab" id="tab-unread" onclick="setReadFilter('unread')"><span class="unread-dot"></span> 未读 <span class="tab-cnt" id="cnt-unread">0</span></button>
+        <button class="read-tab" id="tab-read" onclick="setReadFilter('read')">已读 <span class="tab-cnt" id="cnt-read">0</span></button>
       </div>
     </div>
     <div class="stats">
@@ -802,18 +850,115 @@ tr:last-child td{border-bottom:none}
 </main>
 </div>
 <script>
-const STORE="seo_v4";
-let state;try{state=JSON.parse(localStorage.getItem(STORE)||'{"read":[]}');}catch(_){state={read:[]};}
+const STORE="seo_v5";
+let state;
+try{state=JSON.parse(localStorage.getItem(STORE)||'{"read":[]}');}catch(_){state={read:[]};}
 const allCards=Array.from(document.querySelectorAll(".card"));
 const dayTabs=Array.from(document.querySelectorAll(".day-tab"));
 const searchBox=document.getElementById("searchInput");
-let activeDays=7,currentPage="home";
+let activeDays=7,currentPage="home",readFilter="all";
+
 function save(){try{localStorage.setItem(STORE,JSON.stringify(state));}catch(_){}}
-function toggleRead(id,btn){
+
+function markRead(id){
   if(!state.read.includes(id))state.read.push(id);
-  const c=document.getElementById(id);if(c)c.classList.add("is-read");
-  btn.textContent="Read \u2713";save();
+  const c=document.getElementById(id);
+  if(!c)return;
+  c.classList.add("is-read");
+  const bm=c.querySelector(".btn-mark");if(bm)bm.textContent="\u2713 已读";
+  const bu=c.querySelector(".btn-unread");if(bu)bu.style.display="inline-block";
+  save();updateCounts();
 }
+function markUnread(id){
+  state.read=state.read.filter(x=>x!==id);
+  const c=document.getElementById(id);
+  if(!c)return;
+  c.classList.remove("is-read");
+  const bm=c.querySelector(".btn-mark");if(bm)bm.textContent="Mark read";
+  save();updateCounts();
+}
+// keep toggleRead for backward compat
+function toggleRead(id,btn){markRead(id);}
+
+function setReadFilter(f){
+  readFilter=f;
+  document.querySelectorAll(".read-tab").forEach(t=>t.classList.remove("active"));
+  const tab=document.getElementById("tab-"+f);if(tab)tab.classList.add("active");
+  applyFilters();
+}
+
+function updateCounts(){
+  const now=Math.floor(Date.now()/1000);
+  const q=(searchBox?searchBox.value||"":"").trim().toLowerCase();
+  let total=0,unread=0,read=0;
+  allCards.forEach(c=>{
+    const inWin=(now-Number(c.dataset.ts))<=activeDays*86400;
+    const match=!q||c.textContent.toLowerCase().includes(q);
+    if(!inWin||!match)return;
+    total++;
+    if(c.classList.contains("is-read"))read++;else unread++;
+  });
+  const ce=document.getElementById("cnt-all");if(ce)ce.textContent=total;
+  const cu=document.getElementById("cnt-unread");if(cu)cu.textContent=unread;
+  const cr=document.getElementById("cnt-read");if(cr)cr.textContent=read;
+}
+
+function getTimeGroup(ts){
+  const ageDays=(Math.floor(Date.now()/1000)-ts)/86400;
+  if(ageDays<=7)return{label:"7 天内",order:0};
+  if(ageDays<=30)return{label:"7-30 天",order:1};
+  return{label:"30-90 天",order:2};
+}
+
+function applyFilters(){
+  const now=Math.floor(Date.now()/1000);
+  const q=(searchBox?searchBox.value||"":"").trim().toLowerCase();
+
+  if(currentPage==="home"){
+    // Group visible cards by time bucket
+    const buckets={};
+    allCards.forEach(c=>{
+      const ts=Number(c.dataset.ts);
+      const inWin=(now-ts)<=activeDays*86400;
+      const match=!q||c.textContent.toLowerCase().includes(q);
+      const isRead=c.classList.contains("is-read");
+      const showByFilter=(readFilter==="all")||(readFilter==="read"&&isRead)||(readFilter==="unread"&&!isRead);
+      if(inWin&&match&&showByFilter){
+        const grp=getTimeGroup(ts);
+        if(!buckets[grp.order])buckets[grp.order]={label:grp.label,cards:[]};
+        buckets[grp.order].cards.push(c);
+        c.style.display="flex";
+      }else{
+        c.style.display="none";
+      }
+    });
+    // Rebuild time group wrappers
+    const grid=document.querySelector(".news-grid-home");
+    if(grid){
+      grid.innerHTML="";
+      Object.keys(buckets).sort().forEach(order=>{
+        const b=buckets[order];
+        const hdr=document.createElement("div");
+        hdr.className="time-group-label";
+        hdr.style.gridColumn="1/-1";
+        hdr.textContent=b.label+" ("+b.cards.length+"篇)";
+        grid.appendChild(hdr);
+        b.cards.forEach(c=>{grid.appendChild(c);});
+      });
+    }
+  } else {
+    // In category pages: apply time + search filter, no read grouping
+    const sectionCards=document.querySelectorAll("#page-"+currentPage+" .card");
+    sectionCards.forEach(c=>{
+      const ts=Number(c.dataset.ts);
+      const inWin=(now-ts)<=activeDays*86400;
+      const match=!q||c.textContent.toLowerCase().includes(q);
+      c.style.display=(inWin&&match)?"flex":"none";
+    });
+  }
+  updateCounts();
+}
+
 function showPage(slug){
   document.getElementById("page-home").style.display="none";
   document.querySelectorAll(".page-section").forEach(s=>s.style.display="none");
@@ -828,26 +973,92 @@ function showPage(slug){
     const tab=document.querySelector('.nav-tab[data-target="page-'+slug+'"]');
     if(tab)tab.classList.add("active");currentPage=slug;
   }
+  applyFilters();
 }
-function applyFilters(){
-  if(currentPage!=="home")return;
-  const now=Math.floor(Date.now()/1000);
-  const q=(searchBox.value||"").trim().toLowerCase();
-  allCards.forEach(c=>{
-    const ok=(now-Number(c.dataset.ts))<=activeDays*86400&&(!q||c.textContent.toLowerCase().includes(q));
-    c.style.display=ok?"flex":"none";
-  });
-}
+
+// Restore read state
 state.read.forEach(id=>{
   const c=document.getElementById(id);if(!c)return;
-  c.classList.add("is-read");const b=c.querySelector(".btn-mark");if(b)b.textContent="Read \u2713";
+  c.classList.add("is-read");
+  const bm=c.querySelector(".btn-mark");if(bm)bm.textContent="\u2713 已读";
 });
+
 dayTabs.forEach(t=>t.addEventListener("click",()=>{
-  dayTabs.forEach(x=>x.classList.remove("active"));t.classList.add("active");
-  activeDays=Number(t.dataset.days);applyFilters();
+  dayTabs.forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");
+  activeDays=Number(t.dataset.days);
+  applyFilters();
 }));
 if(searchBox)searchBox.addEventListener("input",applyFilters);
-showPage("home");applyFilters();
+
+showPage("home");
+
+// ── Per-section filters ────────────────────────────────────
+const sectionState={};
+function getSS(slug){if(!sectionState[slug])sectionState[slug]={days:7,filter:"all"};return sectionState[slug];}
+
+function setSectionDays(slug,days,btn){
+  getSS(slug).days=days;
+  // update active tab
+  document.querySelectorAll('[data-section="'+slug+'"]').forEach(t=>t.classList.remove("active"));
+  if(btn)btn.classList.add("active");
+  renderSection(slug);
+}
+
+function setSectionFilter(slug,f){
+  getSS(slug).filter=f;
+  // update active read tab
+  const sec=document.getElementById("page-"+slug);
+  if(sec)sec.querySelectorAll(".section-read-bar .read-tab").forEach((t,i)=>{
+    t.classList.toggle("active",["all","unread","read"][i]===f);
+  });
+  renderSection(slug);
+}
+
+function renderSection(slug){
+  const ss=getSS(slug);
+  const now=Math.floor(Date.now()/1000);
+  const grid=document.getElementById("grid-"+slug);
+  if(!grid)return;
+  const cards=Array.from(grid.querySelectorAll(".card"));
+
+  // Collect visible cards grouped by time
+  const buckets={};
+  cards.forEach(c=>{
+    const ts=Number(c.dataset.ts);
+    const inWin=(now-ts)<=ss.days*86400;
+    const isRead=c.classList.contains("is-read");
+    const showByFilter=ss.filter==="all"||(ss.filter==="read"&&isRead)||(ss.filter==="unread"&&!isRead);
+    if(inWin&&showByFilter){
+      const grp=getTimeGroup(ts);
+      if(!buckets[grp.order])buckets[grp.order]={label:grp.label,cards:[]};
+      buckets[grp.order].cards.push(c);
+    }
+  });
+
+  // Rebuild grid with time group labels
+  grid.innerHTML="";
+  const orders=Object.keys(buckets).sort();
+  if(orders.length===0){
+    grid.innerHTML="<div class=\'empty\'>该时间段内没有符合条件的文章。</div>";
+    return;
+  }
+  orders.forEach(order=>{
+    const b=buckets[order];
+    const hdr=document.createElement("div");
+    hdr.className="time-group-label";
+    hdr.style.gridColumn="1/-1";
+    hdr.textContent=b.label+" ("+b.cards.length+"篇)";
+    grid.appendChild(hdr);
+    b.cards.forEach(c=>{c.style.display="flex";grid.appendChild(c);});
+  });
+}
+
+// Init all sections on load
+document.querySelectorAll(".page-section").forEach(sec=>{
+  const slug=sec.id.replace("page-","");
+  renderSection(slug);
+});
 </script>
 </body></html>"""
 
