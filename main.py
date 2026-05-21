@@ -12,68 +12,62 @@ try:
 except Exception:
     OpenAI = None
 
+
 CATEGORY_ORDER = ["SEO 动态", "GEO 趋势", "AI 搜索", "专家动态"]
 
 CATEGORY_META = {
-    "SEO 动态": {"icon": "🔎", "slug": "seo",       "accent": "#2563eb", "light": "#eff6ff", "label": "SEO"},
-    "GEO 趋势": {"icon": "🌐", "slug": "geo",       "accent": "#0891b2", "light": "#ecfeff", "label": "GEO"},
-    "AI 搜索":  {"icon": "🤖", "slug": "ai-search", "accent": "#7c3aed", "light": "#f5f3ff", "label": "AI"},
-    "专家动态": {"icon": "★",  "slug": "experts",   "accent": "#374151", "light": "#f9fafb", "label": "Expert"},
+    "SEO 动态": {"icon": "🔎", "slug": "seo", "accent": "#2563eb", "light": "#eff6ff", "label": "SEO"},
+    "GEO 趋势": {"icon": "🌐", "slug": "geo", "accent": "#0891b2", "light": "#ecfeff", "label": "GEO"},
+    "AI 搜索": {"icon": "🤖", "slug": "ai-search", "accent": "#7c3aed", "light": "#f5f3ff", "label": "AI"},
+    "专家动态": {"icon": "★", "slug": "experts", "accent": "#374151", "light": "#f9fafb", "label": "Expert"},
 }
 
 RSS_SOURCES = {
     "SEO 动态": {
-        # feedburner 代理的官方 Google Search Central feed
         "Google Search Central": "https://feeds.feedburner.com/blogspot/amDG",
-        "Search Engine Land":    "https://searchengineland.com/feed",
-        "SEO Roundtable":        "https://www.seroundtable.com/rss.xml",
-        "Ahrefs Blog":           "https://ahrefs.com/blog/feed/",
-        "Backlinko":             "https://backlinko.com/feed/",
-        "Moz Blog":              "https://moz.com/blog/feed",
-        "Semrush Blog":          "https://www.semrush.com/blog/feed/",
+        "Search Engine Land": "https://searchengineland.com/feed",
+        "SEO Roundtable": "https://www.seroundtable.com/rss.xml",
+        "Ahrefs Blog": "https://ahrefs.com/blog/feed/",
+        "Backlinko": "https://backlinko.com/feed/",
+        "Moz Blog": "https://moz.com/blog/feed",
+        "Semrush Blog": "https://www.semrush.com/blog/feed/",
     },
     "GEO 趋势": {
         "Search Engine Journal": "https://www.searchenginejournal.com/feed/",
-        "Aleyda Solis Blog":     "https://www.aleydasolis.com/en/blog/feed/",
-        "Onely Tech SEO":        "https://www.onely.com/blog/feed/",
-        # Perplexity 无公开 RSS，替换为 Wired AI
-        "Wired AI":              "https://www.wired.com/feed/tag/ai/latest/rss",
-        # BrightEdge 无公开 RSS，替换为 Search Engine Watch
-        "Search Engine Watch":   "https://www.searchenginewatch.com/feed/",
+        "Aleyda Solis Blog": "https://www.aleydasolis.com/en/blog/feed/",
+        "Onely Tech SEO": "https://www.onely.com/blog/feed/",
+        "Wired AI": "https://www.wired.com/feed/tag/ai/latest/rss",
+        "Search Engine Watch": "https://www.searchenginewatch.com/feed/",
     },
     "AI 搜索": {
-        "OpenAI News":           "https://openai.com/news/rss.xml",
-        "Google AI Blog":        "https://blog.google/technology/ai/rss/",
-        # Anthropic 无官方 RSS，使用社区维护的抓取 feed
-        "Anthropic News":        "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_news.xml",
-        # The Verge AI 正确 URL
-        "The Verge AI":          "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+        "OpenAI News": "https://openai.com/news/rss.xml",
+        "Google AI Blog": "https://blog.google/technology/ai/rss/",
+        "Anthropic News": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_news.xml",
+        "The Verge AI": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
         "MIT Technology Review": "https://www.technologyreview.com/feed/",
     },
 }
 
 EXPERT_PROFILES = [
-    {"name": "Aleyda Solis",   "role": "International SEO",        "url": "https://x.com/Aleyda",       "note": "International SEO consultant — technical SEO, crawling, AI Search impact."},
-    {"name": "Lily Ray",       "role": "E-E-A-T & Algo Updates",   "url": "https://x.com/lilyraynyc",   "note": "Tracks Google algorithm updates, content quality, E-E-A-T and visibility."},
-    {"name": "Barry Schwartz", "role": "SEO News & Google Daily",  "url": "https://x.com/rustybrick",   "note": "Founder of SEO Roundtable, covers Google updates daily in real time."},
-    {"name": "John Mueller",   "role": "Google Search Advocate",   "url": "https://x.com/JohnMu",       "note": "Google Search Advocate — direct source on how Google Search works."},
-    {"name": "Marie Haynes",   "role": "Google Penalties & EAT",  "url": "https://x.com/Marie_Haynes", "note": "Expert on Google penalties, quality issues, and E-E-A-T signals."},
-    {"name": "Glenn Gabe",     "role": "Algorithm Analysis",       "url": "https://x.com/glenngabe",    "note": "Deep-dives into Google algorithm updates and their traffic impact."},
-    {"name": "Rand Fishkin",   "role": "SEO & Audience Strategy",  "url": "https://x.com/randfish",     "note": "Founder of Moz & SparkToro. Broad takes on SEO, content and audience research."},
-    {"name": "Kevin Indig",    "role": "Growth & GEO",             "url": "https://x.com/Kevin_Indig",  "note": "Growth strategy, GEO and organic search at scale for tech companies."},
-    {"name": "Brodie Clark",   "role": "Google Features & SERP",   "url": "https://x.com/brodieseo",    "note": "Documents Google SERP feature changes with screenshots and analysis."},
-    {"name": "Cyrus Shepard",  "role": "On-page & Internal Links", "url": "https://x.com/CyrusShepard", "note": "On-page SEO, internal linking structure, and technical content strategy."},
-    {"name": "Wil Reynolds",   "role": "Search & AI Strategy",     "url": "https://x.com/wilreynolds",  "note": "CEO of Seer Interactive, covers AI's evolving role in search strategy."},
-    {"name": "Zara Zhang",     "role": "AI Products & Global",     "url": "https://x.com/zarazhangrui", "note": "AI products, global tech trends, and cross-market AI strategy perspectives."},
+    {"name": "Aleyda Solis", "role": "International SEO", "url": "https://x.com/Aleyda", "note": "International SEO consultant — technical SEO, crawling, AI Search impact."},
+    {"name": "Lily Ray", "role": "E-E-A-T & Algo Updates", "url": "https://x.com/lilyraynyc", "note": "Tracks Google algorithm updates, content quality, E-E-A-T and visibility."},
+    {"name": "Barry Schwartz", "role": "SEO News & Google Daily", "url": "https://x.com/rustybrick", "note": "Founder of SEO Roundtable, covers Google updates daily in real time."},
+    {"name": "John Mueller", "role": "Google Search Advocate", "url": "https://x.com/JohnMu", "note": "Google Search Advocate — direct source on how Google Search works."},
+    {"name": "Marie Haynes", "role": "Google Penalties & EAT", "url": "https://x.com/Marie_Haynes", "note": "Expert on Google penalties, quality issues, and E-E-A-T signals."},
+    {"name": "Glenn Gabe", "role": "Algorithm Analysis", "url": "https://x.com/glenngabe", "note": "Deep-dives into Google algorithm updates and their traffic impact."},
+    {"name": "Rand Fishkin", "role": "SEO & Audience Strategy", "url": "https://x.com/randfish", "note": "Founder of Moz & SparkToro. Broad takes on SEO, content and audience research."},
+    {"name": "Kevin Indig", "role": "Growth & GEO", "url": "https://x.com/Kevin_Indig", "note": "Growth strategy, GEO and organic search at scale for tech companies."},
+    {"name": "Brodie Clark", "role": "Google Features & SERP", "url": "https://x.com/brodieseo", "note": "Documents Google SERP feature changes with screenshots and analysis."},
+    {"name": "Cyrus Shepard", "role": "On-page & Internal Links", "url": "https://x.com/CyrusShepard", "note": "On-page SEO, internal linking structure, and technical content strategy."},
+    {"name": "Wil Reynolds", "role": "Search & AI Strategy", "url": "https://x.com/wilreynolds", "note": "CEO of Seer Interactive, covers AI's evolving role in search strategy."},
+    {"name": "Zara Zhang", "role": "AI Products & Global", "url": "https://x.com/zarazhangrui", "note": "AI products, global tech trends, and cross-market AI strategy perspectives."},
 ]
 
 WINDOW_DAYS = int(os.environ.get("WINDOW_DAYS", "14"))
 MAX_ITEMS_PER_SOURCE = int(os.environ.get("MAX_ITEMS_PER_SOURCE", "12"))
 REQUEST_TIMEOUT = int(os.environ.get("REQUEST_TIMEOUT", "20"))
-USER_AGENT = "Mozilla/5.0 (compatible; SEO-News-Monitor/4.0; +https://github.com/Bianca-hub-hub/seo-news-monitor)"
+USER_AGENT = "Mozilla/5.0 (compatible; SEO-News-Monitor/4.1; +https://github.com/Bianca-hub-hub/seo-news-monitor)"
 
-
-# ── Utilities ────────────────────────────────────────────────────────────────
 
 def normalize_text(raw):
     if not raw:
@@ -97,7 +91,7 @@ def compact_error(error):
 
 def fallback_summary(item):
     base = normalize_text(item.get("raw_summary", "")) or item["title"]
-    return f"From {item['source']}: {base[:110].rstrip('., ')}."
+    return f"From {item['source']}: {base[:120].rstrip('., ')}."
 
 
 def build_ai_client():
@@ -105,14 +99,18 @@ def build_ai_client():
     if not api_key or OpenAI is None:
         return None
     base_url = os.environ.get("OPENAI_BASE_URL")
-    return OpenAI(api_key=api_key, **({"base_url": base_url.strip()} if base_url else {}))
+    if base_url:
+        return OpenAI(api_key=api_key, base_url=base_url.strip())
+    return OpenAI(api_key=api_key)
 
 
 def generate_ai_summary(client, item):
     if client is None:
         return fallback_summary(item)
-    model = os.environ.get("OPENAI_MODEL", "claude-sonnet-4-6")
+
+    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
     raw = normalize_text(item.get("raw_summary", ""))[:1200]
+
     try:
         resp = client.chat.completions.create(
             model=model,
@@ -121,7 +119,10 @@ def generate_ai_summary(client, item):
                 {"role": "user", "content": (
                     "Summarize this news item from the angle of SEO, GEO, and AI Search impact. "
                     "1-2 sentences, high info density, no fluff.\n\n"
-                    f"Source: {item['source']}\nTitle: {item['title']}\nExcerpt: {raw or 'N/A'}"
+                    f"Source: {item['source']}\n"
+                    f"Category: {item['category']}\n"
+                    f"Title: {item['title']}\n"
+                    f"Excerpt: {raw or 'N/A'}"
                 )},
             ],
             temperature=0.2,
@@ -131,144 +132,157 @@ def generate_ai_summary(client, item):
             return text[:280]
     except Exception as exc:
         print(f"[WARN] AI summary failed: {item['title'][:60]} -> {exc}")
+
     return fallback_summary(item)
+
+
+def article_link(item):
+    title_short = item["title"][:58] + ("…" if len(item["title"]) > 58 else "")
+    return (
+        '<a class="inline-ref" href="' + html.escape(item["link"]) + '" '
+        'target="_blank" rel="noopener noreferrer" '
+        'title="' + html.escape(item["title"]) + '">'
+        '<span class="inline-ref-source">' + html.escape(item["source"]) + '</span>'
+        + html.escape(title_short) +
+        '</a>'
+    )
+
+
+def digest_date_range(items):
+    if not items:
+        return ""
+    return f"{min(i['date_str'] for i in items)} ~ {max(i['date_str'] for i in items)}"
+
+
+def fallback_digest(category, items):
+    if not items:
+        return {}
+
+    top = items[:6]
+    date_range = digest_date_range(items)
+
+    lead = top[0]
+    second = top[1] if len(top) > 1 else top[0]
+    third = top[2] if len(top) > 2 else top[0]
+
+    paragraphs = [
+        {
+            "html": (
+                f"本周 {category} 领域最值得关注的是搜索体验继续向 AI 摘要、答案整合和多来源引用转移。"
+                f"{article_link(lead)} 是一个值得优先阅读的信号，它说明搜索入口正在从传统蓝链列表，"
+                "转向更强调语义理解、内容可信度和品牌可见性的复合型结果页。"
+            )
+        },
+        {
+            "html": (
+                f"与此同时，内容策略的重点也在变化。{article_link(second)} 提醒我们，"
+                "单纯围绕关键词扩写内容已经不够，网站需要把核心页面改造成更容易被搜索系统理解和引用的内容资产，"
+                "包括清晰的问题结构、事实依据、作者可信度、内部链接和主题覆盖。"
+            )
+        },
+        {
+            "html": (
+                f"从运营角度看，{article_link(third)} 可以作为本周复盘入口。"
+                "接下来更值得关注的不是单篇文章能否排名，而是品牌、专家观点和高质量页面能否持续出现在 AI Search、"
+                "精选摘要和搜索结果的关键位置。"
+            )
+        },
+    ]
+
+    return {
+        "paragraphs": paragraphs,
+        "date_range": date_range,
+        "count": len(items),
+        "ai_generated": False,
+    }
 
 
 def generate_weekly_digest(client, category, items):
     """
-    Returns a dict with keys:
-      paragraphs: list of {"html": str}  — each para is HTML with inline <a> links
-      date_range: str
-      count: int
-      ai_generated: bool
+    Returns:
+      {
+        "paragraphs": [{"html": "..."}],
+        "date_range": "...",
+        "count": int,
+        "ai_generated": bool
+      }
     """
-    import re as _re
-
     if not items:
         return {}
 
-    date_range = f"{min(i['date_str'] for i in items)} ~ {max(i['date_str'] for i in items)}"
-    result_base = {"date_range": date_range, "count": len(items)}
+    items = sorted(items, key=lambda x: x["ts"], reverse=True)
+    date_range = digest_date_range(items)
 
-    # Build numbered reference list for AI
     ref_map = {}
-    lines = []
-    for idx, item in enumerate(items[:15], 1):
-        raw = normalize_text(item.get("raw_summary", "") or item.get("summary", ""))[:350]
-        lines.append(f"[{idx}] [{item['source']}] {item['title']}\n    摘要: {raw}")
+    source_lines = []
+
+    for idx, item in enumerate(items[:18], 1):
+        raw = normalize_text(item.get("summary") or item.get("raw_summary", ""))[:320]
+        source_lines.append(
+            f"[{idx}] 分类：{item['category']}｜来源：{item['source']}｜日期：{item['date_str']}｜"
+            f"标题：{item['title']}｜摘要：{raw}"
+        )
         ref_map[idx] = item
 
-    digest_input = "\n".join(lines)
-    model = os.environ.get("OPENAI_MODEL", "claude-sonnet-4-6")
+    if client is None:
+        return fallback_digest(category, items)
+
+    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 
     prompt = (
-        f"你是资深SEO/AI搜索行业分析师。\n"
-        f"以下是「{category}」板块本周（{date_range}）的{len(ref_map)}篇文章：\n\n"
-        f"{digest_input}\n\n"
-        "请用中文写一篇本周资讯综述，要求：\n"
-        "1. 500-800字，3-5个自然段，每段聚焦一个主题或趋势\n"
-        "2. 用分析性语言写，有观点，不是标题堆砌\n"
-        "3. 在正文里自然地引用文章时，用 [REF:编号] 标注，例如：Google本周发布了新的AI搜索指南 [REF:2]，指出...\n"
-        "4. 每段可以有1-3个引用，引用紧跟在相关观点后面\n"
-        "5. 结尾一段总结本周最值得关注的核心趋势\n"
-        "6. 段落之间用空行分隔\n"
-        "7. 只输出正文，不要加标题"
+        f"你是资深 SEO / GEO / AI Search 行业分析师。\n"
+        f"以下是「{category}」在 {date_range} 的资讯列表，共 {len(items)} 篇，下面最多列出 18 篇：\n\n"
+        + "\n".join(source_lines)
+        + "\n\n请写一篇中文本周综述，要求：\n"
+        "1. 3 个自然段，总字数 300-500 字。\n"
+        "2. 像行业分析，不要逐条罗列标题。\n"
+        "3. 第一段讲本周最重要趋势，第二段讲对 SEO / 内容 / GEO 的影响，第三段讲网站运营接下来应该关注什么。\n"
+        "4. 正文自然引用 2-4 篇文章，引用格式只能用 [REF:编号]，例如 [REF:2]。\n"
+        "5. 不要编造来源里没有的信息。\n"
+        "6. 只输出正文，不要标题。"
     )
 
-    ai_text = ""
-    if client is not None:
-        try:
-            resp = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": "你是专业的SEO/AI搜索领域分析师，写作风格专业、有观点、易读。"},
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.4,
-                max_tokens=1200,
-            )
-            ai_text = (resp.choices[0].message.content or "").strip()
-            print(f"[OK] Digest for {category}: {len(ai_text)} chars")
-        except Exception as exc:
-            import traceback
-            print(f"[WARN] Digest API failed for {category}: {type(exc).__name__}: {exc}")
-            print(f"[WARN] Full traceback: {traceback.format_exc()}")
-
-    def refs_to_html(text):
-        """Convert [REF:N] markers to inline clickable links."""
-        def replace_ref(m):
-            idx = int(m.group(1))
-            item = ref_map.get(idx)
-            if not item:
-                return ""
-            title_short = item["title"][:50] + ("…" if len(item["title"]) > 50 else "")
-            return (
-                '<a class="inline-ref" href="' + html.escape(item["link"]) + '" '
-                'target="_blank" rel="noopener noreferrer" '
-                'title="' + html.escape(item["title"]) + '">'
-                '<span class="inline-ref-source">' + html.escape(item["source"]) + '</span>'
-                + html.escape(title_short) + '</a>'
-            )
-        return _re.sub(r"\[REF:(\d+)\]", replace_ref, text)
-
-    if ai_text and len(ai_text) > 100:
-        # Split on blank lines to get paragraphs, preserve line breaks within
-        raw_paras = [p.strip() for p in _re.split(r"\n{2,}", ai_text) if p.strip()]
-        paragraphs = []
-        for para in raw_paras:
-            para_html = refs_to_html(html.escape(para).replace("\n", "<br>"))
-            paragraphs.append({"html": para_html})
-        result_base["paragraphs"] = paragraphs
-        result_base["ai_generated"] = True
-        return result_base
-
-    # Fallback: build proper readable paragraphs grouped by topic/source
-    print(f"[INFO] Using fallback digest for {category}")
-
-    def make_ref(item):
-        short = item["title"][:55] + ("…" if len(item["title"]) > 55 else "")
-        return (
-            '<a class="inline-ref" href="' + html.escape(item["link"]) + '" '
-            'target="_blank" rel="noopener noreferrer">'
-            '<span class="inline-ref-source">' + html.escape(item["source"]) + '</span>'
-            + html.escape(short) + '</a>'
+    try:
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": "你是专业、克制、有洞察力的中文 SEO / AI 搜索情报编辑。"},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.35,
+            max_tokens=1200,
         )
+        ai_text = (resp.choices[0].message.content or "").strip()
+        if len(normalize_text(ai_text)) < 120:
+            return fallback_digest(category, items)
 
-    # Group by source
-    by_source = {}
-    for item in items[:15]:
-        by_source.setdefault(item["source"], []).append(item)
+        def replace_ref(match):
+            idx = int(match.group(1))
+            item = ref_map.get(idx)
+            return article_link(item) if item else ""
 
-    paras = []
-    intro_parts = []
+        paragraphs = []
+        for para in re.split(r"\n\s*\n|\n", ai_text):
+            para = para.strip()
+            if not para:
+                continue
+            safe = html.escape(para)
+            safe = re.sub(r"\[REF:(\d+)\]", replace_ref, safe)
+            paragraphs.append({"html": safe})
 
-    for src, src_items in list(by_source.items())[:5]:
-        src_items = src_items[:3]
-        ref_links = " ".join(make_ref(x) for x in src_items)
-        # Use the actual summaries to form a sentence
-        summaries = [x.get("summary", x["title"])[:120] for x in src_items[:2]]
-        first_summary = html.escape(summaries[0]) if summaries else ""
-        if len(src_items) == 1:
-            para_text = (
-                html.escape(src) + " 本周发布：" + make_ref(src_items[0]) + "。"
-                + ("<br><span class=\'digest-detail\'>" + first_summary + "</span>" if first_summary else "")
-            )
-        else:
-            titles = "、".join(
-                '<a class="inline-ref" href="' + html.escape(x["link"]) + '" target="_blank" rel="noopener noreferrer">'
-                '<span class="inline-ref-source">' + html.escape(x["source"]) + '</span>'
-                + html.escape(x["title"][:45]) + ('…' if len(x["title"]) > 45 else '') + '</a>'
-                for x in src_items
-            )
-            para_text = (
-                html.escape(src) + " 本周共发布 " + str(len(src_items)) + " 篇内容，包括：" + titles + "。"
-                + ("<br><span class=\'digest-detail\'>" + first_summary + "</span>" if first_summary else "")
-            )
-        paras.append({"html": para_text})
+        if paragraphs:
+            return {
+                "paragraphs": paragraphs,
+                "date_range": date_range,
+                "count": len(items),
+                "ai_generated": True,
+            }
 
-    result_base["paragraphs"] = paras
-    result_base["ai_generated"] = False
-    return result_base
+    except Exception as exc:
+        print(f"[WARN] Digest API failed for {category}: {type(exc).__name__}: {exc}")
+
+    return fallback_digest(category, items)
+
 
 def parse_entry_date(entry, fallback):
     dt = entry.get("published_parsed") or entry.get("updated_parsed")
@@ -281,101 +295,151 @@ def parse_entry_date(entry, fallback):
 
 
 def fetch_feed(url):
-    r = requests.get(url, headers={"User-Agent": USER_AGENT, "Accept": "application/rss+xml, application/atom+xml, */*"}, timeout=REQUEST_TIMEOUT)
-    r.raise_for_status()
-    enc = r.encoding or r.apparent_encoding or "utf-8"
-    text = strip_invalid_xml_chars(r.content.decode(enc, errors="replace"))
-    return feedparser.parse(text), r.headers.get("content-type", "")
+    response = requests.get(
+        url,
+        headers={
+            "User-Agent": USER_AGENT,
+            "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
+        },
+        timeout=REQUEST_TIMEOUT,
+    )
+    response.raise_for_status()
+    encoding = response.encoding or response.apparent_encoding or "utf-8"
+    text = response.content.decode(encoding, errors="replace")
+    text = strip_invalid_xml_chars(text)
+    return feedparser.parse(text), response.headers.get("content-type", "")
 
 
 def parse_feed_items(category, source, url, time_limit):
     results = []
-    status = {"category": category, "source": source, "url": url, "state": "error", "count": 0, "error": ""}
+    status = {
+        "category": category,
+        "source": source,
+        "url": url,
+        "state": "error",
+        "count": 0,
+        "error": "",
+    }
+
     now = datetime.now()
+
     try:
-        feed, _ = fetch_feed(url)
-        bozo_err = compact_error(getattr(feed, "bozo_exception", None)) if getattr(feed, "bozo", False) else ""
+        feed, content_type = fetch_feed(url)
+        bozo_error = compact_error(getattr(feed, "bozo_exception", None)) if getattr(feed, "bozo", False) else ""
+
         for entry in feed.entries[:MAX_ITEMS_PER_SOURCE * 3]:
-            pub = parse_entry_date(entry, now)
-            if pub < time_limit:
+            published_at = parse_entry_date(entry, now)
+            if published_at < time_limit:
                 continue
+
             link = (entry.get("link") or "").strip()
             title = normalize_text(entry.get("title") or "Untitled")
             if not link or not title:
                 continue
-            uid = hashlib.md5(f"{category}|{source}|{link}".encode()).hexdigest()[:16]
+
+            uid = hashlib.md5(f"{category}|{source}|{link}".encode("utf-8")).hexdigest()[:16]
+
             results.append({
-                "id": uid, "category": category, "source": source, "title": title, "link": link,
-                "ts": int(pub.timestamp()), "date_str": pub.strftime("%Y-%m-%d"),
+                "id": uid,
+                "category": category,
+                "source": source,
+                "title": title,
+                "link": link,
+                "ts": int(published_at.timestamp()),
+                "date_str": published_at.strftime("%Y-%m-%d"),
                 "raw_summary": entry.get("summary") or entry.get("description", ""),
-                "is_video": "youtube" in link.lower(),
+                "is_video": "youtube" in link.lower() or "video" in normalize_text(entry.get("tags", "")).lower(),
             })
+
             if len(results) >= MAX_ITEMS_PER_SOURCE:
                 break
+
         status["count"] = len(results)
-        if results and bozo_err:
-            status["state"], status["error"] = "warning", bozo_err
+
+        if results and bozo_error:
+            status["state"] = "warning"
+            status["error"] = bozo_error
         elif results:
             status["state"] = "ok"
         else:
             status["state"] = "empty"
-            status["error"] = bozo_err or f"No items in last {WINDOW_DAYS} days"
+            status["error"] = bozo_error or f"No items in last {WINDOW_DAYS} days; content-type: {content_type or 'unknown'}"
+
     except Exception as exc:
         status["error"] = compact_error(exc)
         print(f"[WARN] fetch failed: {source} -> {exc}")
+
     return results, status
 
 
 def inject_expert_cards(all_data):
     now = datetime.now()
-    for p in EXPERT_PROFILES:
-        uid = hashlib.md5(f"expert-{p['url']}".encode()).hexdigest()[:16]
+
+    for profile in EXPERT_PROFILES:
+        uid = hashlib.md5(f"expert-{profile['url']}".encode("utf-8")).hexdigest()[:16]
         all_data.append({
-            "id": uid, "category": "专家动态", "source": p["name"],
-            "title": f"{p['name']} — {p['role']}", "link": p["url"],
-            "ts": int(now.timestamp()), "date_str": now.strftime("%Y-%m-%d"),
-            "raw_summary": p["note"], "summary": p["note"],
-            "is_video": False, "role": p["role"],
+            "id": uid,
+            "category": "专家动态",
+            "source": profile["name"],
+            "title": f"{profile['name']} — {profile['role']}",
+            "link": profile["url"],
+            "ts": int(now.timestamp()),
+            "date_str": now.strftime("%Y-%m-%d"),
+            "raw_summary": profile["note"],
+            "summary": profile["note"],
+            "is_video": False,
+            "role": profile["role"],
         })
 
 
 def collect_data():
     time_limit = datetime.now() - timedelta(days=WINDOW_DAYS)
-    all_data, source_health = [], []
+    all_data = []
+    source_health = []
+
     for category, sources in RSS_SOURCES.items():
         for source, url in sources.items():
             items, status = parse_feed_items(category, source, url, time_limit)
             all_data.extend(items)
             source_health.append(status)
+
     seen = {}
     for item in sorted(all_data, key=lambda x: x["ts"], reverse=True):
         if item["link"] not in seen:
             seen[item["link"]] = item
+
     all_data = list(seen.values())
+
     client = build_ai_client()
+
     for item in all_data:
         item["summary"] = item.get("summary") or generate_ai_summary(client, item)
+
+    news_items = sorted(all_data, key=lambda x: x["ts"], reverse=True)
+
+    print(f"[INFO] Generating homepage weekly digest ({len(news_items)} items)...")
+    home_digest = generate_weekly_digest(client, "SEO / GEO / AI 搜索", news_items)
+
+    weekly_digests = {}
+    for category in CATEGORY_ORDER:
+        if category == "专家动态":
+            continue
+        cat_items = [item for item in news_items if item["category"] == category]
+        print(f"[INFO] Generating weekly digest for {category} ({len(cat_items)} items)...")
+        weekly_digests[category] = generate_weekly_digest(client, category, cat_items)
+
     inject_expert_cards(all_data)
     all_data.sort(key=lambda x: x["ts"], reverse=True)
-    # Generate per-category weekly digests
-    weekly_digests = {}
-    for cat in CATEGORY_ORDER:
-        if cat == "专家动态":
-            continue
-        cat_items = [i for i in all_data if i["category"] == cat]
-        print(f"[INFO] Generating weekly digest for {cat} ({len(cat_items)} items)...")
-        weekly_digests[cat] = generate_weekly_digest(client, cat, cat_items)
-    return all_data, source_health, weekly_digests
 
+    return all_data, source_health, weekly_digests, home_digest
 
-# ── HTML helpers ─────────────────────────────────────────────────────────────
 
 def status_badge(state):
     return {
-        "ok":      ('<span class="badge-ok">Normal</span>'),
-        "warning": ('<span class="badge-warn">Warning</span>'),
-        "empty":   ('<span class="badge-empty">No items</span>'),
-        "error":   ('<span class="badge-error">Error</span>'),
+        "ok": '<span class="badge-ok">Normal</span>',
+        "warning": '<span class="badge-warn">Warning</span>',
+        "empty": '<span class="badge-empty">No items</span>',
+        "error": '<span class="badge-error">Error</span>',
     }.get(state, '<span class="badge-error">Unknown</span>')
 
 
@@ -383,6 +447,7 @@ def item_card(item):
     meta = CATEGORY_META[item["category"]]
     video = "<span class='tag-video'>VIDEO</span>" if item["is_video"] else ""
     e = html.escape
+
     return (
         '<article class="card" id="' + item["id"] + '" data-ts="' + str(item["ts"]) + '">'
         '<div class="card-top">'
@@ -393,8 +458,7 @@ def item_card(item):
         '<p>' + e(item["summary"]) + '</p>'
         '<div class="card-foot">'
         '<button class="btn-mark" onclick="markRead(\'' + item["id"] + '\')">Mark read</button>'
-        '<button class="btn-unread" onclick="markUnread(\'' + item["id"] + '\')">标为未读</button>'
-        '<a class="btn-open" href="' + e(item["link"]) + '" target="_blank" rel="noopener noreferrer">Read &rarr;' + video + '</a>'
+        '<a class="btn-open" href="' + e(item["link"]) + '" target="_blank" rel="noopener noreferrer">Read → ' + video + '</a>'
         '</div>'
         '</article>'
     )
@@ -405,7 +469,7 @@ def expert_card(item):
     return (
         '<a class="expert-card" href="' + e(item["link"]) + '" target="_blank" rel="noopener noreferrer">'
         '<div class="expert-x">X</div>'
-        '<div class="expert-info">'
+        '<div>'
         '<div class="expert-name">' + e(item["source"]) + '</div>'
         '<div class="expert-role">' + e(item.get("role", "")) + '</div>'
         '<div class="expert-note">' + e(item["summary"]) + '</div>'
@@ -414,42 +478,42 @@ def expert_card(item):
     )
 
 
+def digest_html(digest, accent="#2563eb", light="#eff6ff"):
+    if not digest or not digest.get("paragraphs"):
+        return ""
+
+    badge = '<span class="digest-ai-badge">AI 综述</span>' if digest.get("ai_generated") else '<span class="digest-ai-badge digest-ai-fallback">自动整理</span>'
+    paras = "".join('<p class="digest-para">' + p["html"] + '</p>' for p in digest["paragraphs"])
+
+    return (
+        '<div class="digest-box" style="--ac:' + accent + ';--lc:' + light + '">'
+        '<div class="digest-header">'
+        '<div class="digest-label">📋 本周综述 ' + badge + '</div>'
+        '<div class="digest-meta">' + html.escape(digest.get("date_range", "")) + ' · 共 ' + str(digest.get("count", 0)) + ' 篇</div>'
+        '</div>'
+        '<div class="digest-body">' + paras + '</div>'
+        '</div>'
+    )
+
+
 def page_section(category, items, digest=None):
     meta = CATEGORY_META[category]
     e = html.escape
+
     if category == "专家动态":
-        inner = "".join(expert_card(i) for i in items)
-        grid_cls = "expert-grid"
-        digest_html = ""
+        inner = "".join(expert_card(item) for item in items)
+        grid_class = "expert-grid"
+        top_digest = ""
     else:
-        inner = "".join(item_card(i) for i in items[:60])
-        grid_cls = "news-grid"
-        if digest and isinstance(digest, dict) and digest.get("paragraphs"):
-            date_range = digest.get("date_range", "")
-            count = digest.get("count", len(items))
-            if digest.get("ai_generated"):
-                ai_badge = '<span class="digest-ai-badge">AI 综述</span>'
-            else:
-                ai_badge = '<span class="digest-ai-badge digest-ai-fallback">自动整理</span>'
-            paras_html = ""
-            for para in digest["paragraphs"]:
-                # para["html"] is pre-built HTML with safe inline ref links
-                paras_html += '<p class="digest-para">' + para["html"] + '</p>'
-            digest_html = (
-                '<div class="digest-box" style="--ac:' + meta["accent"] + ';--lc:' + meta["light"] + '">'
-                '<div class="digest-header">'
-                '<div class="digest-label">📋 本周综述' + ai_badge + '</div>'
-                '<div class="digest-meta">' + date_range + ' &nbsp;·&nbsp; 共 ' + str(count) + ' 篇</div>'
-                '</div>'
-                '<div class="digest-body">' + paras_html + '</div>'
-                '</div>'
-            )
-        else:
-            digest_html = ""
+        inner = "".join(item_card(item) for item in items[:60])
+        grid_class = "news-grid"
+        top_digest = digest_html(digest, meta["accent"], meta["light"])
+
     if not inner:
         inner = "<div class='empty'>No content fetched for this window.</div>"
+
     return (
-        '<section class="page-section" id="page-' + meta["slug"] + '" style="display:none">'
+        '<section class="page-section" id="' + meta["slug"] + '">'
         '<div class="section-head">'
         '<span class="section-icon" style="background:' + meta["accent"] + '">' + meta["icon"] + '</span>'
         '<div>'
@@ -458,365 +522,184 @@ def page_section(category, items, digest=None):
         '</div>'
         '<span class="section-count">' + str(len(items)) + ' items</span>'
         '</div>'
-        + digest_html +
-        '<div class="section-read-bar">'
-        '<div class="read-tabs">'
-        '<button class="read-tab active" onclick="setSectionFilter(\'' + meta["slug"] + '\',\'all\')">全部</button>'
-        '<button class="read-tab" onclick="setSectionFilter(\'' + meta["slug"] + '\',\'unread\')"><span class="unread-dot"></span> 未读</button>'
-        '<button class="read-tab" onclick="setSectionFilter(\'' + meta["slug"] + '\',\'read\')">已读</button>'
-        '</div>'
-        '<div class="day-tabs" style="margin-left:auto">'
-        '<button class="day-tab active" data-section="' + meta["slug"] + '" data-days="7" onclick="setSectionDays(\'' + meta["slug"] + '\',7,this)">7天</button>'
-        '<button class="day-tab" data-section="' + meta["slug"] + '" data-days="30" onclick="setSectionDays(\'' + meta["slug"] + '\',30,this)">30天</button>'
-        '<button class="day-tab" data-section="' + meta["slug"] + '" data-days="90" onclick="setSectionDays(\'' + meta["slug"] + '\',90,this)">3个月</button>'
-        '</div></div>'
-        '<div class="' + grid_cls + '" id="grid-' + meta["slug"] + '">' + inner + '</div>'
+        + top_digest +
+        '<div class="' + grid_class + '">' + inner + '</div>'
         '</section>'
     )
 
+
 def insight_rows(items):
     out = []
-    for cat in CATEGORY_ORDER:
-        if cat == "专家动态":
+
+    for category in CATEGORY_ORDER:
+        if category == "专家动态":
             continue
-        picks = [i for i in items if i["category"] == cat][:3]
+
+        picks = [item for item in items if item["category"] == category][:3]
         if not picks:
             continue
-        meta = CATEGORY_META[cat]
-        e = html.escape
+
+        meta = CATEGORY_META[category]
         links = "".join(
-            '<a href="' + e(i["link"]) + '" target="_blank" rel="noopener noreferrer">' + e(i["title"]) + '</a>'
-            for i in picks
+            '<a href="' + html.escape(item["link"]) + '" target="_blank" rel="noopener noreferrer">' + html.escape(item["title"]) + '</a>'
+            for item in picks
         )
+
         out.append(
             '<div class="insight-row">'
             '<span class="ins-dot" style="background:' + meta["accent"] + '"></span>'
             '<div>'
-            '<div class="ins-cat" style="color:' + meta["accent"] + '">' + meta["icon"] + ' ' + cat + '</div>'
+            '<div class="ins-cat" style="color:' + meta["accent"] + '">' + meta["icon"] + ' ' + category + '</div>'
             '<div class="ins-links">' + links + '</div>'
             '</div>'
             '</div>'
         )
+
     return "".join(out) or "<div class='empty'>No highlights yet.</div>"
 
 
 def health_rows(source_health):
-    """Only show sources that have fetched items (ok/warning) — hide empty/error/no-update ones."""
     out = []
-    e = html.escape
-    for s in source_health:
-        if s["state"] not in ("ok", "warning"):
-            continue  # only show sources that actually got content
+
+    for source in source_health:
+        if source["state"] not in ("ok", "warning"):
+            continue
+
         out.append(
             '<tr>'
-            '<td class="td-muted">' + e(s["category"]) + '</td>'
-            '<td><a href="' + e(s["url"]) + '" target="_blank" class="src-link">' + e(s["source"]) + '</a></td>'
-            '<td>' + status_badge(s["state"]) + '</td>'
-            '<td class="td-num">' + str(s["count"]) + '</td>'
-            '<td class="td-err">' + e(s["error"] or "—") + '</td>'
+            '<td class="td-muted">' + html.escape(source["category"]) + '</td>'
+            '<td><a href="' + html.escape(source["url"]) + '" target="_blank" class="src-link">' + html.escape(source["source"]) + '</a></td>'
+            '<td>' + status_badge(source["state"]) + '</td>'
+            '<td class="td-num">' + str(source["count"]) + '</td>'
+            '<td class="td-err">' + html.escape(source["error"] or "—") + '</td>'
             '</tr>'
         )
+
     if not out:
-        return '<tr><td colspan="5" style="color:var(--dim);padding:12px 8px;font-size:12px">No sources fetched content in this window.</td></tr>'
+        return '<tr><td colspan="5" class="td-muted">No sources fetched content in this window.</td></tr>'
+
     return "".join(out)
 
 
-# ── Main render ───────────────────────────────────────────────────────────────
+def render_dashboard(all_data, source_health, weekly_digests, home_digest):
+    grouped = {category: [] for category in CATEGORY_ORDER}
 
-def render_dashboard(all_data, source_health, weekly_digests):
-    grouped = {cat: [] for cat in CATEGORY_ORDER}
     for item in all_data:
         if item["category"] in grouped:
             grouped[item["category"]].append(item)
 
-    total = len([i for i in all_data if i["category"] != "专家动态"])
+    news_items = [item for item in all_data if item["category"] != "专家动态"]
+    total = len(news_items)
     active = sum(1 for s in source_health if s["state"] in {"ok", "warning"})
     errors = sum(1 for s in source_health if s["state"] in {"error", "empty"})
-    latest = max((i["date_str"] for i in all_data if i["category"] != "专家动态"), default="—")
-    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+    latest = max((item["date_str"] for item in news_items), default="—")
+    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    nav_tabs_html = ""
-    for cat in CATEGORY_ORDER:
-        meta = CATEGORY_META[cat]
-        cnt = len(grouped[cat])
-        nav_tabs_html += (
-            '<button class="nav-tab" data-target="page-' + meta["slug"] + '" '
-            'onclick="showPage(\'' + meta["slug"] + '\')">'
-            + meta["icon"] + ' ' + cat +
-            ' <span class="nav-cnt">' + str(cnt) + '</span>'
-            '</button>'
-        )
+    nav = "".join(
+        '<a href="#' + CATEGORY_META[cat]["slug"] + '">' + CATEGORY_META[cat]["icon"] + '<span>' + cat + '</span><strong>' + str(len(grouped[cat])) + '</strong></a>'
+        for cat in CATEGORY_ORDER
+    )
 
-    expert_sidebar_html = ""
-    for ex in EXPERT_PROFILES:
-        expert_sidebar_html += (
-            '<a class="expert-sl" href="' + html.escape(ex["url"]) + '" target="_blank" rel="noopener noreferrer">'
-            '<span class="xi">X</span>' + html.escape(ex["name"]) +
-            '</a>'
-        )
+    sections = "".join(page_section(cat, grouped[cat], weekly_digests.get(cat)) for cat in CATEGORY_ORDER)
 
-    sections_html = "".join(page_section(cat, grouped[cat], weekly_digests.get(cat, "")) for cat in CATEGORY_ORDER)
-
-    page = """<!DOCTYPE html>
-<html lang="zh">
+    page = f"""<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SEO Intelligence Monitor</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#f4f6fb;--surface:#fff;--surface2:#f0f3f9;
-  --border:#e2e8f4;--border2:#c8d3e8;
-  --text:#0f172a;--muted:#64748b;--dim:#94a3b8;
-  --blue:#2563eb;--green:#059669;--red:#dc2626;--purple:#7c3aed;
-  --sw:228px;--r:12px;--rs:8px;
-  --font:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+:root {{
+  --bg:#f4f6fb;--surface:#fff;--surface2:#f0f3f9;--border:#e2e8f4;--border2:#c8d3e8;
+  --text:#0f172a;--muted:#64748b;--dim:#94a3b8;--blue:#2563eb;--green:#059669;--red:#dc2626;
   --shadow:0 1px 3px rgba(15,23,42,.05),0 4px 14px rgba(15,23,42,.04);
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
-a{color:inherit;text-decoration:none}
-
-.shell{display:grid;grid-template-columns:var(--sw) 1fr;min-height:100vh}
-
-/* Sidebar */
-.sidebar{
-  position:sticky;top:0;height:100vh;overflow-y:auto;
-  background:var(--surface);border-right:1px solid var(--border);
-  padding:18px 10px;display:flex;flex-direction:column;gap:2px;
-}
-.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;border-bottom:1px solid var(--border);margin-bottom:8px}
-.brand-mark{
-  width:34px;height:34px;border-radius:9px;
-  background:linear-gradient(135deg,#2563eb,#7c3aed);
-  color:#fff;font-weight:800;font-size:11px;letter-spacing:-.3px;
-  display:grid;place-items:center;flex-shrink:0;
-}
-.brand-name{font-size:13px;font-weight:700}
-.brand-sub{font-size:10px;color:var(--muted);margin-top:1px;font-family:var(--mono)}
-.slabel{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;padding:14px 8px 4px;font-family:var(--mono)}
-.home-btn{
-  width:100%;text-align:left;border:none;
-  background:var(--blue);color:#fff;
-  display:flex;align-items:center;gap:8px;
-  padding:10px 12px;border-radius:var(--rs);
-  font-family:var(--font);font-size:13px;font-weight:700;
-  cursor:pointer;transition:all .15s;margin-bottom:4px;
-}
-.home-btn:hover{background:#1d4ed8}
-.home-btn.off{background:transparent;color:var(--muted);font-weight:500}
-.home-btn.off:hover{background:var(--surface2);color:var(--text)}
-.nav-tab{
-  width:100%;text-align:left;border:none;background:transparent;
-  display:flex;align-items:center;gap:8px;
-  padding:9px 10px;border-radius:var(--rs);
-  font-family:var(--font);font-size:13px;font-weight:500;color:var(--muted);
-  cursor:pointer;transition:all .15s;
-}
-.nav-tab:hover{background:var(--surface2);color:var(--text)}
-.nav-tab.active{background:#eff6ff;color:var(--blue);font-weight:700}
-.nav-cnt{margin-left:auto;font-size:11px;font-family:var(--mono);background:var(--surface2);color:var(--dim);border-radius:99px;padding:1px 7px}
-.nav-tab.active .nav-cnt{background:#dbeafe;color:var(--blue)}
-.expert-sl{
-  display:flex;align-items:center;gap:8px;
-  padding:7px 10px;border-radius:var(--rs);
-  font-size:12.5px;color:var(--muted);transition:all .15s;
-}
-.expert-sl:hover{background:var(--surface2);color:var(--text)}
-.xi{font-size:11px;opacity:.45;width:16px;text-align:center}
-
-/* Main */
-.main{padding:32px 38px 60px;min-width:0}
-
-/* Home */
-.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--blue);text-transform:uppercase;margin-bottom:8px}
-.page-title{font-size:28px;font-weight:800;line-height:1.2;margin-bottom:6px}
-.page-sub{color:var(--muted);font-size:14px;margin-bottom:28px}
-
-.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:22px;flex-wrap:wrap}
-.search-box{
-  flex:1;min-width:180px;border:1px solid var(--border2);border-radius:var(--rs);
-  background:var(--surface);color:var(--text);font-family:var(--font);font-size:13px;
-  padding:9px 12px;outline:none;transition:border-color .15s;
-}
-.search-box:focus{border-color:var(--blue)}
-.search-box::placeholder{color:var(--dim)}
-.day-tabs{display:flex;background:var(--surface2);border-radius:var(--rs);padding:3px;gap:2px}
-.day-tab{
-  border:none;background:transparent;color:var(--muted);
-  border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;
-  cursor:pointer;font-family:var(--font);transition:all .15s;
-}
-.day-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
-
-/* Stats */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
-.stat{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
-  padding:16px 18px;position:relative;overflow:hidden;box-shadow:var(--shadow);
-}
-.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ac,var(--blue))}
-.stat-label{font-size:11px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
-.stat-val{font-size:26px;font-weight:800;margin-top:4px;color:var(--ac,var(--blue))}
-.stat-val.sm{font-size:16px;margin-top:9px;font-weight:700}
-
-/* Home panels */
-.home-panels{display:grid;grid-template-columns:1fr 370px;gap:16px;align-items:start}
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow)}
-.panel-title{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--text)}
-.pticon{width:26px;height:26px;border-radius:7px;background:var(--surface2);display:grid;place-items:center;font-size:14px}
-
-/* Insight */
-.insight-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
-.insight-row:last-child{border-bottom:none;padding-bottom:0}
-.insight-row:first-child{padding-top:0}
-.ins-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:8px}
-.ins-cat{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;font-weight:700}
-.ins-links{display:flex;flex-direction:column;gap:5px}
-.ins-links a{font-size:13px;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.ins-links a:hover{color:var(--blue)}
-
-/* Health table */
-.health-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;padding:5px 8px;color:var(--dim);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--border);white-space:nowrap}
-td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top}
-tr:last-child td{border-bottom:none}
-.td-muted{color:var(--muted);white-space:nowrap;font-size:11px}
-.td-num{font-family:var(--mono);color:var(--muted);text-align:right;padding-right:4px}
-.td-err{max-width:170px;color:var(--dim);font-family:var(--mono);font-size:10px;word-break:break-all}
-.src-link{color:var(--muted)}.src-link:hover{color:var(--blue)}
-.badge-ok{display:inline-flex;border-radius:99px;padding:2px 7px;font-size:10px;font-weight:700;font-family:var(--mono);color:#065f46;background:#dcfce7}
-.badge-warn{display:inline-flex;border-radius:99px;padding:2px 7px;font-size:10px;font-weight:700;font-family:var(--mono);color:#92400e;background:#fef3c7}
-.badge-empty{display:inline-flex;border-radius:99px;padding:2px 7px;font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);background:var(--surface2)}
-.badge-error{display:inline-flex;border-radius:99px;padding:2px 7px;font-size:10px;font-weight:700;font-family:var(--mono);color:#991b1b;background:#fee2e2}
-
-/* Page sections */
-.page-section{animation:fi .2s ease}
-@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-.section-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}
-.section-icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:20px;flex-shrink:0;color:#fff}
-.section-kicker{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:2px}
-.section-title{font-size:22px;font-weight:800}
-.section-count{margin-left:auto;font-size:12px;color:var(--muted);font-family:var(--mono)}
-
-/* Cards */
-.news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
-.card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
-  padding:16px;display:flex;flex-direction:column;gap:10px;
-  box-shadow:var(--shadow);transition:border-color .15s,transform .15s;
-}
-.card:hover{border-color:var(--border2);transform:translateY(-2px)}
-.card.is-read{opacity:.42}
-.card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.source-pill{
-  font-size:11px;font-weight:700;font-family:var(--mono);
-  color:var(--ac);background:var(--lc);
-  border-radius:5px;padding:2px 8px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;
-}
-.card-date{font-size:11px;color:var(--dim);font-family:var(--mono);white-space:nowrap}
-.card h3{font-size:14.5px;font-weight:600;line-height:1.42;flex:1}
-.card h3 a:hover{color:var(--blue)}
-.card p{font-size:13px;color:var(--muted);line-height:1.65;flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.card-foot{display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);padding-top:10px;margin-top:auto}
-.btn-mark{border:1px solid var(--border2);background:#fff;color:var(--dim);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:var(--font);transition:all .12s}
-.btn-mark:hover{border-color:var(--muted);color:var(--muted)}
-.btn-open{margin-left:auto;background:var(--text);color:#fff;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600;transition:all .12s}
-.btn-open:hover{background:var(--blue)}
-.tag-video{background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;border-radius:4px;padding:1px 5px;font-family:var(--mono)}
-
-/* Expert cards */
-.expert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
-.expert-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
-  padding:16px;display:flex;gap:14px;align-items:flex-start;
-  box-shadow:var(--shadow);transition:border-color .15s,transform .15s;
-}
-.expert-card:hover{border-color:var(--blue);transform:translateY(-2px)}
-.expert-x{
-  width:36px;height:36px;border-radius:9px;background:#0f172a;color:#fff;
-  display:grid;place-items:center;font-size:13px;font-weight:800;flex-shrink:0;
-  letter-spacing:-.5px;
-}
-.expert-info{}
-.expert-name{font-size:14px;font-weight:700;margin-bottom:2px}
-.expert-role{font-size:11px;color:var(--blue);font-family:var(--mono);font-weight:600;margin-bottom:6px}
-.expert-note{font-size:12.5px;color:var(--muted);line-height:1.55}
-
-.empty{border:1px dashed var(--border2);border-radius:var(--r);padding:24px;color:var(--dim);text-align:center;grid-column:1/-1;font-size:14px}
-.footer{color:var(--dim);font-size:11px;font-family:var(--mono);margin-top:32px;padding-top:18px;border-top:1px solid var(--border)}
-.digest-box{
-  background:var(--lc,#eff6ff);border:1.5px solid var(--ac,#2563eb);border-radius:var(--r);
-  padding:20px 24px;margin-bottom:24px;
-}
-.digest-header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.digest-label{
-  font-size:13px;font-weight:700;font-family:var(--mono);
-  color:var(--ac,#2563eb);display:flex;align-items:center;gap:8px;
-}
-.digest-ai-badge{
-  font-size:10px;font-weight:700;font-family:var(--mono);
-  background:var(--ac,#2563eb);color:#fff;
-  border-radius:4px;padding:2px 6px;letter-spacing:.04em;
-}
-.digest-ai-fallback{background:var(--muted)}
-.digest-meta{font-size:11px;color:var(--muted);font-family:var(--mono)}
-.digest-body{font-size:14px;line-height:1.9;color:var(--text)}
-.digest-para{margin-bottom:10px}
-.digest-para:last-child{margin-bottom:0}
-.inline-ref{
-  display:inline-flex;align-items:baseline;gap:4px;
-  background:color-mix(in srgb,var(--ac,#2563eb) 9%,#fff);
-  border:1px solid color-mix(in srgb,var(--ac,#2563eb) 22%,transparent);
-  border-radius:5px;padding:2px 8px 2px 6px;
-  font-size:12.5px;color:var(--text);
-  vertical-align:middle;margin:0 2px;
-  transition:all .12s;max-width:280px;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;
-}
-.inline-ref:hover{background:color-mix(in srgb,var(--ac,#2563eb) 16%,#fff);color:var(--ac,#2563eb);border-color:var(--ac,#2563eb)}
-.digest-detail{font-size:12.5px;color:var(--muted);display:block;margin-top:4px;margin-left:4px;line-height:1.6}
-.inline-ref-source{
-  font-size:10px;font-weight:700;font-family:var(--mono);
-  color:var(--ac,#2563eb);white-space:nowrap;flex-shrink:0;
-  background:color-mix(in srgb,var(--ac,#2563eb) 15%,transparent);
-  border-radius:3px;padding:0 4px;margin-right:2px;
-}
-
-.read-filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
-.read-tabs{display:flex;background:var(--surface2);border-radius:var(--rs);padding:3px;gap:2px}
-.read-tab{border:none;background:transparent;color:var(--muted);border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;display:flex;align-items:center;gap:6px}
-.read-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.read-tab .tab-cnt{font-size:11px;font-family:var(--mono);background:var(--surface2);color:var(--dim);border-radius:99px;padding:1px 6px}
-.read-tab.active .tab-cnt{background:#dbeafe;color:var(--blue)}
-.unread-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);flex-shrink:0}
-.time-group{margin-bottom:28px}
-.time-group-label{
-  display:flex;align-items:center;gap:10px;
-  font-size:11px;font-weight:700;font-family:var(--mono);
-  color:var(--muted);text-transform:uppercase;letter-spacing:.1em;
-  margin-bottom:12px;
-}
-.time-group-label::after{content:"";flex:1;height:1px;background:var(--border)}
-.card.is-read .card-title a{color:var(--dim)}
-.card.is-read .card-summary{color:var(--dim)}
-.btn-unread{border:1px solid var(--border2);background:#fff;color:var(--dim);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:var(--font);transition:all .12s;display:none}
-.card.is-read .btn-unread{display:inline-block}
-.card.is-read .btn-mark{display:none}
-.section-read-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-@media(max-width:1000px){.home-panels{grid-template-columns:1fr}}
-@media(max-width:900px){
-  .shell{grid-template-columns:1fr}
-  .sidebar{position:static;height:auto;flex-direction:row;flex-wrap:wrap;padding:12px}
-  .brand{border-bottom:none;padding-bottom:0;margin-bottom:0}
-  .main{padding:20px 16px 40px}
-  .stats{grid-template-columns:1fr 1fr}
-}
-@media(max-width:560px){.news-grid,.expert-grid{grid-template-columns:1fr}.page-title{font-size:22px}}
+}}
+*{{box-sizing:border-box;margin:0;padding:0}}
+html{{scroll-behavior:smooth}}
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;background:var(--bg);color:var(--text)}}
+a{{color:inherit;text-decoration:none}}
+.shell{{display:grid;grid-template-columns:240px 1fr;min-height:100vh}}
+.sidebar{{position:sticky;top:0;height:100vh;background:#fff;border-right:1px solid var(--border);padding:20px 14px;overflow:auto}}
+.brand{{display:flex;gap:10px;align-items:center;margin-bottom:22px}}
+.brand-mark{{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;display:grid;place-items:center;font-weight:800}}
+.brand-name{{font-weight:800;font-size:14px}}
+.brand-sub{{color:var(--muted);font-size:11px;margin-top:2px}}
+.nav-label{{font-size:11px;color:var(--dim);font-weight:800;text-transform:uppercase;margin:20px 8px 8px}}
+.nav a{{display:grid;grid-template-columns:24px 1fr auto;gap:8px;align-items:center;padding:10px 8px;border-radius:8px;color:var(--muted);font-size:13px}}
+.nav a:hover{{background:var(--surface2);color:var(--text)}}
+.nav strong{{font-size:11px;color:var(--dim)}}
+.main{{padding:32px 38px 60px;min-width:0}}
+.eyebrow{{font-size:12px;color:var(--blue);font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}}
+h1{{font-size:30px;margin-bottom:8px}}
+.page-sub{{color:var(--muted);font-size:14px;margin-bottom:24px;line-height:1.7}}
+.stats{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}}
+.stat{{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;box-shadow:var(--shadow)}}
+.stat-label{{font-size:12px;color:var(--muted);font-weight:700}}
+.stat-val{{font-size:26px;font-weight:800;margin-top:5px;color:var(--ac)}}
+.stat-val.sm{{font-size:17px;margin-top:10px}}
+.panel{{background:#fff;border:1px solid var(--border);border-radius:10px;padding:20px;box-shadow:var(--shadow);margin-bottom:18px}}
+.panel-title{{font-weight:800;margin-bottom:14px}}
+.digest-box{{background:var(--lc);border:1.5px solid var(--ac);border-radius:10px;padding:20px 22px;margin-bottom:22px;box-shadow:var(--shadow)}}
+.digest-header{{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap}}
+.digest-label{{font-weight:900;color:var(--ac);display:flex;gap:8px;align-items:center}}
+.digest-ai-badge{{font-size:11px;background:var(--ac);color:#fff;border-radius:5px;padding:3px 7px}}
+.digest-ai-fallback{{background:var(--muted)}}
+.digest-meta{{font-size:12px;color:var(--muted)}}
+.digest-body{{font-size:15px;line-height:1.9;color:#243044}}
+.digest-para{{margin-bottom:12px}}
+.digest-para:last-child{{margin-bottom:0}}
+.inline-ref{{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid rgba(37,99,235,.22);border-radius:6px;padding:2px 8px;margin:0 2px;color:var(--text);font-size:13px;vertical-align:middle;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+.inline-ref:hover{{color:var(--ac);border-color:var(--ac)}}
+.inline-ref-source{{font-size:10px;font-weight:800;color:var(--ac);background:rgba(37,99,235,.09);border-radius:4px;padding:1px 4px;flex-shrink:0}}
+.insight-row{{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}}
+.insight-row:last-child{{border-bottom:0}}
+.ins-dot{{width:8px;height:8px;border-radius:50%;margin-top:7px;flex-shrink:0}}
+.ins-cat{{font-size:12px;font-weight:900;margin-bottom:6px}}
+.ins-links{{display:flex;flex-direction:column;gap:6px}}
+.ins-links a{{font-size:13px;line-height:1.45}}
+.ins-links a:hover{{color:var(--blue)}}
+table{{width:100%;border-collapse:collapse;font-size:12px}}
+th,td{{padding:8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}}
+th{{color:var(--dim);font-size:11px;text-transform:uppercase}}
+.td-muted{{color:var(--muted)}}
+.td-num{{text-align:right;color:var(--muted)}}
+.td-err{{color:var(--dim);max-width:220px;word-break:break-word}}
+.badge-ok,.badge-warn,.badge-empty,.badge-error{{display:inline-flex;border-radius:99px;padding:2px 7px;font-size:11px;font-weight:800}}
+.badge-ok{{color:#065f46;background:#dcfce7}}
+.badge-warn{{color:#92400e;background:#fef3c7}}
+.badge-empty{{color:var(--muted);background:var(--surface2)}}
+.badge-error{{color:#991b1b;background:#fee2e2}}
+.page-section{{margin-top:34px;scroll-margin-top:20px}}
+.section-head{{display:flex;align-items:center;gap:14px;margin-bottom:18px}}
+.section-icon{{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:20px}}
+.section-kicker{{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:900}}
+.section-title{{font-size:22px;font-weight:900}}
+.section-count{{margin-left:auto;color:var(--muted);font-size:13px}}
+.news-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}}
+.card{{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow)}}
+.card:hover{{border-color:var(--border2)}}
+.card.is-read{{opacity:.45}}
+.card-top{{display:flex;justify-content:space-between;gap:8px}}
+.source-pill{{font-size:11px;font-weight:800;color:var(--ac);background:var(--lc);border-radius:5px;padding:3px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:65%}}
+.card-date{{font-size:11px;color:var(--dim);white-space:nowrap}}
+.card h3{{font-size:15px;line-height:1.45}}
+.card h3 a:hover{{color:var(--blue)}}
+.card p{{font-size:13px;color:var(--muted);line-height:1.65;flex:1}}
+.card-foot{{display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);padding-top:10px}}
+.btn-mark{{border:1px solid var(--border2);background:#fff;color:var(--muted);border-radius:6px;padding:6px 10px;cursor:pointer}}
+.btn-open{{margin-left:auto;background:var(--text);color:#fff;border-radius:6px;padding:6px 11px;font-size:12px;font-weight:700}}
+.tag-video{{background:#fee2e2;color:#991b1b;font-size:10px;border-radius:4px;padding:1px 5px}}
+.expert-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}}
+.expert-card{{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;gap:14px;box-shadow:var(--shadow)}}
+.expert-card:hover{{border-color:var(--blue)}}
+.expert-x{{width:36px;height:36px;border-radius:9px;background:#0f172a;color:#fff;display:grid;place-items:center;font-weight:900;flex-shrink:0}}
+.expert-name{{font-weight:800;margin-bottom:3px}}
+.expert-role{{color:var(--blue);font-size:12px;font-weight:700;margin-bottom:6px}}
+.expert-note{{font-size:13px;color:var(--muted);line-height:1.55}}
+.empty{{border:1px dashed var(--border2);border-radius:10px;padding:24px;color:var(--dim);text-align:center;grid-column:1/-1}}
+.footer{{color:var(--dim);font-size:12px;margin-top:36px;padding-top:18px;border-top:1px solid var(--border)}}
+@media(max-width:900px){{.shell{{grid-template-columns:1fr}}.sidebar{{position:static;height:auto}}.main{{padding:22px 16px 40px}}.stats{{grid-template-columns:repeat(2,1fr)}}}}
+@media(max-width:560px){{.stats,.news-grid,.expert-grid{{grid-template-columns:1fr}}h1{{font-size:24px}}}}
 </style>
 </head>
 <body>
@@ -824,290 +707,84 @@ tr:last-child td{border-bottom:none}
 <aside class="sidebar">
   <div class="brand">
     <div class="brand-mark">SEO</div>
-    <div><div class="brand-name">SEO Monitor</div><div class="brand-sub">Auto-fetch &middot; Daily</div></div>
+    <div>
+      <div class="brand-name">SEO Monitor</div>
+      <div class="brand-sub">Auto-fetch · Daily</div>
+    </div>
   </div>
-  <button class="home-btn" id="home-btn" onclick="showPage('home')">&#127968;&nbsp; Home / Overview</button>
-  <div class="slabel">Categories</div>
-  NAV_TABS_PLACEHOLDER
-  <div class="slabel">Expert Feeds</div>
-  EXPERT_SIDEBAR_PLACEHOLDER
+  <div class="nav-label">Categories</div>
+  <nav class="nav">{nav}</nav>
 </aside>
+
 <main class="main">
-  <div id="page-home">
-    <div class="eyebrow">SEO / GEO / AI Search Intelligence</div>
-    <h1 class="page-title">Search Monitor</h1>
-    <p class="page-sub">Your personal feed for SEO, AI Search &amp; GEO updates &mdash; auto-fetched daily.</p>
-    <div class="toolbar">
-      <input id="searchInput" class="search-box" type="search" placeholder="Search across all articles&hellip;">
-      <div class="day-tabs">
-        <button class="day-tab active" data-days="7">7 天</button>
-        <button class="day-tab" data-days="30">30 天</button>
-        <button class="day-tab" data-days="90">3 个月</button>
-      </div>
-    </div>
-    <div class="read-filter-bar">
-      <div class="read-tabs">
-        <button class="read-tab active" id="tab-all" onclick="setReadFilter('all')"><span class="tab-cnt" id="cnt-all">0</span> 全部</button>
-        <button class="read-tab" id="tab-unread" onclick="setReadFilter('unread')"><span class="unread-dot"></span> 未读 <span class="tab-cnt" id="cnt-unread">0</span></button>
-        <button class="read-tab" id="tab-read" onclick="setReadFilter('read')">已读 <span class="tab-cnt" id="cnt-read">0</span></button>
-      </div>
-    </div>
-    <div class="stats">
-      <div class="stat" style="--ac:#2563eb"><div class="stat-label">Total Articles</div><div class="stat-val">TOTAL_PLACEHOLDER</div></div>
-      <div class="stat" style="--ac:#059669"><div class="stat-label">Active Sources</div><div class="stat-val">ACTIVE_PLACEHOLDER</div></div>
-      <div class="stat" style="--ac:#dc2626"><div class="stat-label">Need Attention</div><div class="stat-val">ERRORS_PLACEHOLDER</div></div>
-      <div class="stat" style="--ac:#7c3aed"><div class="stat-label">Latest Item</div><div class="stat-val sm">LATEST_PLACEHOLDER</div></div>
-    </div>
-    <div class="panel" style="margin-bottom:16px">
-      <div class="panel-title"><span class="pticon">&#129322;</span> Source Health &mdash; Active &amp; Issues Only</div>
-      <div class="health-wrap">
-        <table>
-          <thead><tr><th>Category</th><th>Source</th><th>Status</th><th>Items</th><th>Note</th></tr></thead>
-          <tbody>HEALTH_PLACEHOLDER</tbody>
-        </table>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="panel-title"><span class="pticon">&#9889;</span> This Week's Highlights</div>
-      INSIGHTS_PLACEHOLDER
-    </div>
-  </div>
-  SECTIONS_PLACEHOLDER
-  <div class="footer">Generated: GENERATED_AT_PLACEHOLDER &middot; Window: last WINDOW_DAYS_PLACEHOLDER days &middot; Auto-updated via GitHub Actions</div>
+  <div class="eyebrow">SEO / GEO / AI Search Intelligence</div>
+  <h1>Search Monitor</h1>
+  <p class="page-sub">Your personal feed for SEO, AI Search & GEO updates. Auto-fetched daily and summarized into a weekly intelligence brief.</p>
+
+  <section class="stats">
+    <div class="stat" style="--ac:#2563eb"><div class="stat-label">Total Articles</div><div class="stat-val">{total}</div></div>
+    <div class="stat" style="--ac:#059669"><div class="stat-label">Active Sources</div><div class="stat-val">{active}</div></div>
+    <div class="stat" style="--ac:#dc2626"><div class="stat-label">Need Attention</div><div class="stat-val">{errors}</div></div>
+    <div class="stat" style="--ac:#7c3aed"><div class="stat-label">Latest Item</div><div class="stat-val sm">{latest}</div></div>
+  </section>
+
+  {digest_html(home_digest, "#2563eb", "#eff6ff")}
+
+  <section class="panel">
+    <div class="panel-title">Source Health — Active Sources Only</div>
+    <table>
+      <thead><tr><th>Category</th><th>Source</th><th>Status</th><th>Items</th><th>Note</th></tr></thead>
+      <tbody>{health_rows(source_health)}</tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <div class="panel-title">This Week's Highlights</div>
+    {insight_rows(news_items)}
+  </section>
+
+  {sections}
+
+  <div class="footer">Generated: {generated_at} · Window: last {WINDOW_DAYS} days · Auto-updated via GitHub Actions</div>
 </main>
 </div>
+
 <script>
-const STORE="seo_v5";
+const STORE = "seo_monitor_read_v1";
 let state;
-try{state=JSON.parse(localStorage.getItem(STORE)||'{"read":[]}');}catch(_){state={read:[]};}
-const allCards=Array.from(document.querySelectorAll(".card"));
-const dayTabs=Array.from(document.querySelectorAll(".day-tab"));
-const searchBox=document.getElementById("searchInput");
-let activeDays=7,currentPage="home",readFilter="all";
+try {{
+  state = JSON.parse(localStorage.getItem(STORE) || '{{"read":[]}}');
+}} catch (_) {{
+  state = {{"read":[]}};
+}}
 
-function save(){try{localStorage.setItem(STORE,JSON.stringify(state));}catch(_){}}
+function save() {{
+  localStorage.setItem(STORE, JSON.stringify(state));
+}}
 
-function markRead(id){
-  if(!state.read.includes(id))state.read.push(id);
-  const c=document.getElementById(id);
-  if(!c)return;
-  c.classList.add("is-read");
-  const bm=c.querySelector(".btn-mark");if(bm)bm.textContent="\u2713 已读";
-  const bu=c.querySelector(".btn-unread");if(bu)bu.style.display="inline-block";
-  save();updateCounts();
-}
-function markUnread(id){
-  state.read=state.read.filter(x=>x!==id);
-  const c=document.getElementById(id);
-  if(!c)return;
-  c.classList.remove("is-read");
-  const bm=c.querySelector(".btn-mark");if(bm)bm.textContent="Mark read";
-  save();updateCounts();
-}
-// keep toggleRead for backward compat
-function toggleRead(id,btn){markRead(id);}
+function markRead(id) {{
+  if (!state.read.includes(id)) state.read.push(id);
+  const card = document.getElementById(id);
+  if (card) card.classList.add("is-read");
+  save();
+}}
 
-function setReadFilter(f){
-  readFilter=f;
-  document.querySelectorAll(".read-tab").forEach(t=>t.classList.remove("active"));
-  const tab=document.getElementById("tab-"+f);if(tab)tab.classList.add("active");
-  applyFilters();
-}
-
-function updateCounts(){
-  const now=Math.floor(Date.now()/1000);
-  const q=(searchBox?searchBox.value||"":"").trim().toLowerCase();
-  let total=0,unread=0,read=0;
-  allCards.forEach(c=>{
-    const inWin=(now-Number(c.dataset.ts))<=activeDays*86400;
-    const match=!q||c.textContent.toLowerCase().includes(q);
-    if(!inWin||!match)return;
-    total++;
-    if(c.classList.contains("is-read"))read++;else unread++;
-  });
-  const ce=document.getElementById("cnt-all");if(ce)ce.textContent=total;
-  const cu=document.getElementById("cnt-unread");if(cu)cu.textContent=unread;
-  const cr=document.getElementById("cnt-read");if(cr)cr.textContent=read;
-}
-
-function getTimeGroup(ts){
-  const ageDays=(Math.floor(Date.now()/1000)-ts)/86400;
-  if(ageDays<=7)return{label:"7 天内",order:0};
-  if(ageDays<=30)return{label:"7-30 天",order:1};
-  return{label:"30-90 天",order:2};
-}
-
-function applyFilters(){
-  const now=Math.floor(Date.now()/1000);
-  const q=(searchBox?searchBox.value||"":"").trim().toLowerCase();
-
-  if(currentPage==="home"){
-    // Group visible cards by time bucket
-    const buckets={};
-    allCards.forEach(c=>{
-      const ts=Number(c.dataset.ts);
-      const inWin=(now-ts)<=activeDays*86400;
-      const match=!q||c.textContent.toLowerCase().includes(q);
-      const isRead=c.classList.contains("is-read");
-      const showByFilter=(readFilter==="all")||(readFilter==="read"&&isRead)||(readFilter==="unread"&&!isRead);
-      if(inWin&&match&&showByFilter){
-        const grp=getTimeGroup(ts);
-        if(!buckets[grp.order])buckets[grp.order]={label:grp.label,cards:[]};
-        buckets[grp.order].cards.push(c);
-        c.style.display="flex";
-      }else{
-        c.style.display="none";
-      }
-    });
-    // Rebuild time group wrappers
-    const grid=document.querySelector(".news-grid-home");
-    if(grid){
-      grid.innerHTML="";
-      Object.keys(buckets).sort().forEach(order=>{
-        const b=buckets[order];
-        const hdr=document.createElement("div");
-        hdr.className="time-group-label";
-        hdr.style.gridColumn="1/-1";
-        hdr.textContent=b.label+" ("+b.cards.length+"篇)";
-        grid.appendChild(hdr);
-        b.cards.forEach(c=>{grid.appendChild(c);});
-      });
-    }
-  } else {
-    // In category pages: apply time + search filter, no read grouping
-    const sectionCards=document.querySelectorAll("#page-"+currentPage+" .card");
-    sectionCards.forEach(c=>{
-      const ts=Number(c.dataset.ts);
-      const inWin=(now-ts)<=activeDays*86400;
-      const match=!q||c.textContent.toLowerCase().includes(q);
-      c.style.display=(inWin&&match)?"flex":"none";
-    });
-  }
-  updateCounts();
-}
-
-function showPage(slug){
-  document.getElementById("page-home").style.display="none";
-  document.querySelectorAll(".page-section").forEach(s=>s.style.display="none");
-  const hb=document.getElementById("home-btn");
-  document.querySelectorAll(".nav-tab").forEach(t=>t.classList.remove("active"));
-  if(slug==="home"){
-    document.getElementById("page-home").style.display="block";
-    hb.className="home-btn";currentPage="home";
-  }else{
-    const sec=document.getElementById("page-"+slug);if(sec)sec.style.display="block";
-    hb.className="home-btn off";
-    const tab=document.querySelector('.nav-tab[data-target="page-'+slug+'"]');
-    if(tab)tab.classList.add("active");currentPage=slug;
-  }
-  applyFilters();
-}
-
-// Restore read state
-state.read.forEach(id=>{
-  const c=document.getElementById(id);if(!c)return;
-  c.classList.add("is-read");
-  const bm=c.querySelector(".btn-mark");if(bm)bm.textContent="\u2713 已读";
-});
-
-dayTabs.forEach(t=>t.addEventListener("click",()=>{
-  dayTabs.forEach(x=>x.classList.remove("active"));
-  t.classList.add("active");
-  activeDays=Number(t.dataset.days);
-  applyFilters();
-}));
-if(searchBox)searchBox.addEventListener("input",applyFilters);
-
-showPage("home");
-
-// ── Per-section filters ────────────────────────────────────
-const sectionState={};
-function getSS(slug){if(!sectionState[slug])sectionState[slug]={days:7,filter:"all"};return sectionState[slug];}
-
-function setSectionDays(slug,days,btn){
-  getSS(slug).days=days;
-  // update active tab
-  document.querySelectorAll('[data-section="'+slug+'"]').forEach(t=>t.classList.remove("active"));
-  if(btn)btn.classList.add("active");
-  renderSection(slug);
-}
-
-function setSectionFilter(slug,f){
-  getSS(slug).filter=f;
-  // update active read tab
-  const sec=document.getElementById("page-"+slug);
-  if(sec)sec.querySelectorAll(".section-read-bar .read-tab").forEach((t,i)=>{
-    t.classList.toggle("active",["all","unread","read"][i]===f);
-  });
-  renderSection(slug);
-}
-
-function renderSection(slug){
-  const ss=getSS(slug);
-  const now=Math.floor(Date.now()/1000);
-  const grid=document.getElementById("grid-"+slug);
-  if(!grid)return;
-  const cards=Array.from(grid.querySelectorAll(".card"));
-
-  // Collect visible cards grouped by time
-  const buckets={};
-  cards.forEach(c=>{
-    const ts=Number(c.dataset.ts);
-    const inWin=(now-ts)<=ss.days*86400;
-    const isRead=c.classList.contains("is-read");
-    const showByFilter=ss.filter==="all"||(ss.filter==="read"&&isRead)||(ss.filter==="unread"&&!isRead);
-    if(inWin&&showByFilter){
-      const grp=getTimeGroup(ts);
-      if(!buckets[grp.order])buckets[grp.order]={label:grp.label,cards:[]};
-      buckets[grp.order].cards.push(c);
-    }
-  });
-
-  // Rebuild grid with time group labels
-  grid.innerHTML="";
-  const orders=Object.keys(buckets).sort();
-  if(orders.length===0){
-    grid.innerHTML="<div class=\'empty\'>该时间段内没有符合条件的文章。</div>";
-    return;
-  }
-  orders.forEach(order=>{
-    const b=buckets[order];
-    const hdr=document.createElement("div");
-    hdr.className="time-group-label";
-    hdr.style.gridColumn="1/-1";
-    hdr.textContent=b.label+" ("+b.cards.length+"篇)";
-    grid.appendChild(hdr);
-    b.cards.forEach(c=>{c.style.display="flex";grid.appendChild(c);});
-  });
-}
-
-// Init all sections on load
-document.querySelectorAll(".page-section").forEach(sec=>{
-  const slug=sec.id.replace("page-","");
-  renderSection(slug);
-});
+state.read.forEach(id => {{
+  const card = document.getElementById(id);
+  if (card) card.classList.add("is-read");
+}});
 </script>
-</body></html>"""
+</body>
+</html>
+"""
 
-    page = page.replace("NAV_TABS_PLACEHOLDER", nav_tabs_html)
-    page = page.replace("EXPERT_SIDEBAR_PLACEHOLDER", expert_sidebar_html)
-    page = page.replace("SECTIONS_PLACEHOLDER", sections_html)
-    page = page.replace("INSIGHTS_PLACEHOLDER", insight_rows(all_data))
-    page = page.replace("HEALTH_PLACEHOLDER", health_rows(source_health))
-    page = page.replace("TOTAL_PLACEHOLDER", str(total))
-    page = page.replace("ACTIVE_PLACEHOLDER", str(active))
-    page = page.replace("ERRORS_PLACEHOLDER", str(errors))
-    page = page.replace("LATEST_PLACEHOLDER", latest)
-    page = page.replace("GENERATED_AT_PLACEHOLDER", generated_at)
-    page = page.replace("WINDOW_DAYS_PLACEHOLDER", str(WINDOW_DAYS))
-
-    with open("index.html", "w", encoding="utf-8") as f:
-        f.write(page)
+    with open("index.html", "w", encoding="utf-8") as file:
+        file.write(page)
 
 
 def fetch_data():
-    all_data, source_health, weekly_digests = collect_data()
-    render_dashboard(all_data, source_health, weekly_digests)
+    all_data, source_health, weekly_digests, home_digest = collect_data()
+    render_dashboard(all_data, source_health, weekly_digests, home_digest)
     print(f"[OK] Generated index.html with {len(all_data)} items")
 
 
