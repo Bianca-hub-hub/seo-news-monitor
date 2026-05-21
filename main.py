@@ -111,7 +111,7 @@ def build_ai_client():
 def generate_ai_summary(client, item):
     if client is None:
         return fallback_summary(item)
-    model = os.environ.get("OPENAI_MODEL", "claude-sonnet-4-5")
+    model = os.environ.get("OPENAI_MODEL", "claude-sonnet-4-6")
     raw = normalize_text(item.get("raw_summary", ""))[:1200]
     try:
         resp = client.chat.completions.create(
@@ -135,48 +135,96 @@ def generate_ai_summary(client, item):
 
 
 def generate_weekly_digest(client, category, items):
-    """Generate a Chinese weekly digest paragraph for a category."""
+    """
+    Returns a dict:
+      {
+        "paragraphs": [{"text": str, "refs": [{"title":str,"link":str,"source":str}]}],
+        "date_range": str,
+        "count": int,
+      }
+    Each paragraph is an analysis chunk followed by its source references.
+    """
     if not items:
-        return ""
-    titles_and_summaries = []
-    for i in items[:12]:
-        raw = normalize_text(i.get("raw_summary", ""))[:300]
-        titles_and_summaries.append(f"- [{i['source']}] {i['title']}: {raw}")
-    digest_input = "\n".join(titles_and_summaries)
+        return {}
+
     date_range = f"{min(i['date_str'] for i in items)} ~ {max(i['date_str'] for i in items)}"
+    result_base = {"date_range": date_range, "count": len(items)}
 
-    if client is None:
-        # fallback: just list top 3 titles in Chinese header
-        top = items[:3]
-        return f"本周共收录 {len(items)} 篇文章（{date_range}）。重点包括：" + "；".join(i["title"] for i in top) + "。"
+    # Build input for AI: include title + summary + link index
+    lines = []
+    ref_map = {}  # index -> item
+    for idx, i in enumerate(items[:15], 1):
+        raw = normalize_text(i.get("raw_summary", "") or i.get("summary", ""))[:400]
+        lines.append(f"[{idx}] 来源:{i['source']} | 标题:{i['title']} | 摘要:{raw}")
+        ref_map[idx] = i
 
-    model = os.environ.get("OPENAI_MODEL", "claude-sonnet-4-5")
+    digest_input = "\n".join(lines)
+    model = os.environ.get("OPENAI_MODEL", "claude-sonnet-4-6")
+
     prompt = (
-        f"你是一位资深SEO/AI搜索行业分析师。以下是「{category}」板块本周（{date_range}）收录的文章列表：\n\n"
+        f"你是资深SEO/AI搜索行业分析师。以下是「{category}」板块本周（{date_range}）的文章（编号[1]-[{len(ref_map)}]）：\n\n"
         f"{digest_input}\n\n"
-        "请用中文写一段本周综述（200-350字），要求：\n"
-        "1. 归纳本周最重要的2-4个趋势或事件\n"
-        "2. 语言简洁专业，有分析视角，不是简单罗列\n"
-        "3. 适当指出对SEO从业者的实际影响\n"
-        "4. 不要用bullet points，写成流畅的段落\n"
-        "5. 结尾一句话点出本周最值得关注的事项"
+        "请写一篇中文本周综述，格式要求：\n"
+        "- 分2-4个段落，每段聚焦一个主题/趋势\n"
+        "- 每段结尾用 [引用编号] 标注来源，如：...值得关注。[1][3]\n"
+        "- 语言专业简洁，有分析视角，指出对SEO从业者的实际影响\n"
+        "- 总字数200-400字\n"
+        "- 只输出正文段落，不要标题，不要bullet points\n"
+        "- 段落之间用空行分隔"
     )
-    try:
-        resp = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": "你是专业的SEO/AI搜索行业分析师，擅长中文写作。"},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.4,
-            max_tokens=600,
-        )
-        text = normalize_text(resp.choices[0].message.content or "")
-        if len(text) > 50:
-            return text
-    except Exception as exc:
-        print(f"[WARN] Weekly digest failed for {category}: {exc}")
-    return f"本周共收录 {len(items)} 篇文章（{date_range}）。"
+
+    ai_text = ""
+    if client is not None:
+        try:
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": "你是专业的SEO/AI搜索行业分析师，写作风格简洁专业。"},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.35,
+                max_tokens=800,
+            )
+            ai_text = normalize_text(resp.choices[0].message.content or "")
+            print(f"[OK] Digest generated for {category}: {len(ai_text)} chars")
+        except Exception as exc:
+            print(f"[WARN] Weekly digest API failed for {category}: {type(exc).__name__}: {exc}")
+
+    if not ai_text or len(ai_text) < 50:
+        # Structured fallback: group items by source and write a basic digest
+        by_source = {}
+        for i in items[:12]:
+            by_source.setdefault(i["source"], []).append(i)
+        paras = []
+        for src, src_items in list(by_source.items())[:4]:
+            chunk_titles = "、".join("《" + x["title"][:40] + "》" for x in src_items[:2])
+            paras.append({
+                "text": f"{src} 本周发布了关于 {chunk_titles} 等内容。",
+                "refs": [{"title": x["title"], "link": x["link"], "source": x["source"]} for x in src_items[:3]],
+            })
+        result_base["paragraphs"] = paras
+        result_base["ai_generated"] = False
+        return result_base
+
+    # Parse AI text: split on blank lines into paragraphs, extract [N] refs
+    import re as _re
+    raw_paras = [p.strip() for p in _re.split(r"\n\s*\n", ai_text) if p.strip()]
+    paragraphs = []
+    for para in raw_paras:
+        ref_indices = [int(m) for m in _re.findall(r"\[(\d+)\]", para)]
+        clean_text = _re.sub(r"\[\d+\]", "", para).strip()
+        refs = []
+        seen_links = set()
+        for idx in ref_indices:
+            item = ref_map.get(idx)
+            if item and item["link"] not in seen_links:
+                refs.append({"title": item["title"], "link": item["link"], "source": item["source"]})
+                seen_links.add(item["link"])
+        paragraphs.append({"text": clean_text, "refs": refs})
+
+    result_base["paragraphs"] = paragraphs
+    result_base["ai_generated"] = True
+    return result_base
 
 
 def parse_entry_date(entry, fallback):
@@ -322,7 +370,7 @@ def expert_card(item):
     )
 
 
-def page_section(category, items, digest=""):
+def page_section(category, items, digest=None):
     meta = CATEGORY_META[category]
     e = html.escape
     if category == "专家动态":
@@ -332,15 +380,33 @@ def page_section(category, items, digest=""):
     else:
         inner = "".join(item_card(i) for i in items[:60])
         grid_cls = "news-grid"
-        if digest:
-            date_range = ""
-            if items:
-                dates = [i["date_str"] for i in items]
-                date_range = f"{min(dates)} ~ {max(dates)}"
+        if digest and isinstance(digest, dict) and digest.get("paragraphs"):
+            date_range = digest.get("date_range", "")
+            count = digest.get("count", len(items))
+            if digest.get("ai_generated"):
+                ai_badge = '<span class="digest-ai-badge">AI 综述</span>'
+            else:
+                ai_badge = '<span class="digest-ai-badge digest-ai-fallback">自动整理</span>'
+            paras_html = ""
+            for para in digest["paragraphs"]:
+                paras_html += '<p class="digest-para">' + e(para["text"]) + '</p>'
+                if para.get("refs"):
+                    paras_html += '<div class="digest-refs">'
+                    for ref in para["refs"]:
+                        short = ref["title"][:60] + ("…" if len(ref["title"]) > 60 else "")
+                        paras_html += (
+                            '<a class="digest-ref-link" href="' + e(ref["link"]) + '" target="_blank" rel="noopener noreferrer">'
+                            '<span class="ref-source">' + e(ref["source"]) + '</span>'
+                            + e(short) + '</a>'
+                        )
+                    paras_html += '</div>'
             digest_html = (
                 '<div class="digest-box" style="--ac:' + meta["accent"] + ';--lc:' + meta["light"] + '">'
-                '<div class="digest-label">📋 本周综述 <span class="digest-date">' + date_range + '</span></div>'
-                '<div class="digest-body">' + e(digest) + '</div>'
+                '<div class="digest-header">'
+                '<div class="digest-label">📋 本周综述' + ai_badge + '</div>'
+                '<div class="digest-meta">' + date_range + ' &nbsp;·&nbsp; 共 ' + str(count) + ' 篇</div>'
+                '</div>'
+                '<div class="digest-body">' + paras_html + '</div>'
                 '</div>'
             )
         else:
@@ -361,7 +427,6 @@ def page_section(category, items, digest=""):
         '<div class="' + grid_cls + '">' + inner + '</div>'
         '</section>'
     )
-
 
 def insight_rows(items):
     out = []
@@ -640,15 +705,40 @@ tr:last-child td{border-bottom:none}
 .footer{color:var(--dim);font-size:11px;font-family:var(--mono);margin-top:32px;padding-top:18px;border-top:1px solid var(--border)}
 .digest-box{
   background:var(--lc,#eff6ff);border:1.5px solid var(--ac,#2563eb);border-radius:var(--r);
-  padding:18px 22px;margin-bottom:22px;position:relative;
+  padding:20px 24px;margin-bottom:24px;
 }
+.digest-header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .digest-label{
-  font-size:12px;font-weight:700;font-family:var(--mono);
-  color:var(--ac,#2563eb);text-transform:uppercase;letter-spacing:.07em;
-  margin-bottom:10px;display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:700;font-family:var(--mono);
+  color:var(--ac,#2563eb);display:flex;align-items:center;gap:8px;
 }
-.digest-date{font-weight:400;color:var(--muted);font-size:11px;letter-spacing:0}
-.digest-body{font-size:14px;line-height:1.85;color:var(--text);white-space:pre-wrap}
+.digest-ai-badge{
+  font-size:10px;font-weight:700;font-family:var(--mono);
+  background:var(--ac,#2563eb);color:#fff;
+  border-radius:4px;padding:2px 6px;letter-spacing:.04em;
+}
+.digest-ai-fallback{background:var(--muted)}
+.digest-meta{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.digest-body{font-size:14px;line-height:1.9;color:var(--text)}
+.digest-para{margin-bottom:10px}
+.digest-para:last-child{margin-bottom:0}
+.digest-refs{
+  display:flex;flex-wrap:wrap;gap:6px;
+  margin-bottom:14px;margin-top:6px;padding-left:2px;
+}
+.digest-ref-link{
+  display:inline-flex;align-items:center;gap:5px;
+  background:color-mix(in srgb,var(--ac,#2563eb) 8%,#fff);
+  border:1px solid color-mix(in srgb,var(--ac,#2563eb) 20%,transparent);
+  border-radius:6px;padding:4px 10px;
+  font-size:12px;color:var(--text);line-height:1.3;
+  transition:all .12s;max-width:320px;
+}
+.digest-ref-link:hover{background:color-mix(in srgb,var(--ac,#2563eb) 15%,#fff);color:var(--ac,#2563eb)}
+.ref-source{
+  font-size:10px;font-weight:700;font-family:var(--mono);
+  color:var(--ac,#2563eb);white-space:nowrap;flex-shrink:0;
+}
 
 @media(max-width:1000px){.home-panels{grid-template-columns:1fr}}
 @media(max-width:900px){
