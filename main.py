@@ -190,7 +190,9 @@ def generate_weekly_digest(client, category, items):
             ai_text = (resp.choices[0].message.content or "").strip()
             print(f"[OK] Digest for {category}: {len(ai_text)} chars")
         except Exception as exc:
+            import traceback
             print(f"[WARN] Digest API failed for {category}: {type(exc).__name__}: {exc}")
+            print(f"[WARN] Full traceback: {traceback.format_exc()}")
 
     def refs_to_html(text):
         """Convert [REF:N] markers to inline clickable links."""
@@ -220,26 +222,50 @@ def generate_weekly_digest(client, category, items):
         result_base["ai_generated"] = True
         return result_base
 
-    # Fallback: write a basic structured summary without AI
+    # Fallback: build proper readable paragraphs grouped by topic/source
     print(f"[INFO] Using fallback digest for {category}")
-    # Group by source, pick top items
-    top_items = items[:8]
-    # Build a readable paragraph per 3 items
+
+    def make_ref(item):
+        short = item["title"][:55] + ("…" if len(item["title"]) > 55 else "")
+        return (
+            '<a class="inline-ref" href="' + html.escape(item["link"]) + '" '
+            'target="_blank" rel="noopener noreferrer">'
+            '<span class="inline-ref-source">' + html.escape(item["source"]) + '</span>'
+            + html.escape(short) + '</a>'
+        )
+
+    # Group by source
+    by_source = {}
+    for item in items[:15]:
+        by_source.setdefault(item["source"], []).append(item)
+
     paras = []
-    chunk_size = 3
-    for i in range(0, min(len(top_items), 9), chunk_size):
-        chunk = top_items[i:i+chunk_size]
-        parts = []
-        for item in chunk:
-            ref_html = (
-                '<a class="inline-ref" href="' + html.escape(item["link"]) + '" '
-                'target="_blank" rel="noopener noreferrer">'
-                '<span class="inline-ref-source">' + html.escape(item["source"]) + '</span>'
-                + html.escape(item["title"][:50]) + ('…' if len(item["title"]) > 50 else '') + '</a>'
+    intro_parts = []
+
+    for src, src_items in list(by_source.items())[:5]:
+        src_items = src_items[:3]
+        ref_links = " ".join(make_ref(x) for x in src_items)
+        # Use the actual summaries to form a sentence
+        summaries = [x.get("summary", x["title"])[:120] for x in src_items[:2]]
+        first_summary = html.escape(summaries[0]) if summaries else ""
+        if len(src_items) == 1:
+            para_text = (
+                html.escape(src) + " 本周发布：" + make_ref(src_items[0]) + "。"
+                + ("<br><span class=\'digest-detail\'>" + first_summary + "</span>" if first_summary else "")
             )
-            summary = html.escape(item.get("summary", "")[:80])
-            parts.append(ref_html + "：" + summary)
-        paras.append({"html": "　　" + "；".join(parts) + "。"})
+        else:
+            titles = "、".join(
+                '<a class="inline-ref" href="' + html.escape(x["link"]) + '" target="_blank" rel="noopener noreferrer">'
+                '<span class="inline-ref-source">' + html.escape(x["source"]) + '</span>'
+                + html.escape(x["title"][:45]) + ('…' if len(x["title"]) > 45 else '') + '</a>'
+                for x in src_items
+            )
+            para_text = (
+                html.escape(src) + " 本周共发布 " + str(len(src_items)) + " 篇内容，包括：" + titles + "。"
+                + ("<br><span class=\'digest-detail\'>" + first_summary + "</span>" if first_summary else "")
+            )
+        paras.append({"html": para_text})
+
     result_base["paragraphs"] = paras
     result_base["ai_generated"] = False
     return result_base
@@ -753,6 +779,7 @@ tr:last-child td{border-bottom:none}
   overflow:hidden;text-overflow:ellipsis;
 }
 .inline-ref:hover{background:color-mix(in srgb,var(--ac,#2563eb) 16%,#fff);color:var(--ac,#2563eb);border-color:var(--ac,#2563eb)}
+.digest-detail{font-size:12.5px;color:var(--muted);display:block;margin-top:4px;margin-left:4px;line-height:1.6}
 .inline-ref-source{
   font-size:10px;font-weight:700;font-family:var(--mono);
   color:var(--ac,#2563eb);white-space:nowrap;flex-shrink:0;
