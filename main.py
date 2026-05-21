@@ -370,7 +370,7 @@ def expert_card(item):
     )
 
 
-def page_section(category, items, digest=""):
+def page_section(category, items, digest=None):
     meta = CATEGORY_META[category]
     e = html.escape
     if category == "专家动态":
@@ -380,15 +380,33 @@ def page_section(category, items, digest=""):
     else:
         inner = "".join(item_card(i) for i in items[:60])
         grid_cls = "news-grid"
-        if digest:
-            date_range = ""
-            if items:
-                dates = [i["date_str"] for i in items]
-                date_range = f"{min(dates)} ~ {max(dates)}"
+        if digest and isinstance(digest, dict) and digest.get("paragraphs"):
+            date_range = digest.get("date_range", "")
+            count = digest.get("count", len(items))
+            if digest.get("ai_generated"):
+                ai_badge = '<span class="digest-ai-badge">AI 综述</span>'
+            else:
+                ai_badge = '<span class="digest-ai-badge digest-ai-fallback">自动整理</span>'
+            paras_html = ""
+            for para in digest["paragraphs"]:
+                paras_html += '<p class="digest-para">' + e(para["text"]) + '</p>'
+                if para.get("refs"):
+                    paras_html += '<div class="digest-refs">'
+                    for ref in para["refs"]:
+                        short = ref["title"][:60] + ("…" if len(ref["title"]) > 60 else "")
+                        paras_html += (
+                            '<a class="digest-ref-link" href="' + e(ref["link"]) + '" target="_blank" rel="noopener noreferrer">'
+                            '<span class="ref-source">' + e(ref["source"]) + '</span>'
+                            + e(short) + '</a>'
+                        )
+                    paras_html += '</div>'
             digest_html = (
                 '<div class="digest-box" style="--ac:' + meta["accent"] + ';--lc:' + meta["light"] + '">'
-                '<div class="digest-label">📋 本周综述 <span class="digest-date">' + date_range + '</span></div>'
-                '<div class="digest-body">' + e(digest) + '</div>'
+                '<div class="digest-header">'
+                '<div class="digest-label">📋 本周综述' + ai_badge + '</div>'
+                '<div class="digest-meta">' + date_range + ' &nbsp;·&nbsp; 共 ' + str(count) + ' 篇</div>'
+                '</div>'
+                '<div class="digest-body">' + paras_html + '</div>'
                 '</div>'
             )
         else:
@@ -409,7 +427,6 @@ def page_section(category, items, digest=""):
         '<div class="' + grid_cls + '">' + inner + '</div>'
         '</section>'
     )
-
 
 def insight_rows(items):
     out = []
