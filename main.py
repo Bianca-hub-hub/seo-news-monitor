@@ -111,7 +111,7 @@ def build_ai_client():
 def generate_ai_summary(client, item):
     if client is None:
         return fallback_summary(item)
-    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    model = os.environ.get("OPENAI_MODEL", "claude-sonnet-4-5")
     raw = normalize_text(item.get("raw_summary", ""))[:1200]
     try:
         resp = client.chat.completions.create(
@@ -132,6 +132,51 @@ def generate_ai_summary(client, item):
     except Exception as exc:
         print(f"[WARN] AI summary failed: {item['title'][:60]} -> {exc}")
     return fallback_summary(item)
+
+
+def generate_weekly_digest(client, category, items):
+    """Generate a Chinese weekly digest paragraph for a category."""
+    if not items:
+        return ""
+    titles_and_summaries = []
+    for i in items[:12]:
+        raw = normalize_text(i.get("raw_summary", ""))[:300]
+        titles_and_summaries.append(f"- [{i['source']}] {i['title']}: {raw}")
+    digest_input = "\n".join(titles_and_summaries)
+    date_range = f"{min(i['date_str'] for i in items)} ~ {max(i['date_str'] for i in items)}"
+
+    if client is None:
+        # fallback: just list top 3 titles in Chinese header
+        top = items[:3]
+        return f"本周共收录 {len(items)} 篇文章（{date_range}）。重点包括：" + "；".join(i["title"] for i in top) + "。"
+
+    model = os.environ.get("OPENAI_MODEL", "claude-sonnet-4-5")
+    prompt = (
+        f"你是一位资深SEO/AI搜索行业分析师。以下是「{category}」板块本周（{date_range}）收录的文章列表：\n\n"
+        f"{digest_input}\n\n"
+        "请用中文写一段本周综述（200-350字），要求：\n"
+        "1. 归纳本周最重要的2-4个趋势或事件\n"
+        "2. 语言简洁专业，有分析视角，不是简单罗列\n"
+        "3. 适当指出对SEO从业者的实际影响\n"
+        "4. 不要用bullet points，写成流畅的段落\n"
+        "5. 结尾一句话点出本周最值得关注的事项"
+    )
+    try:
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": "你是专业的SEO/AI搜索行业分析师，擅长中文写作。"},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.4,
+            max_tokens=600,
+        )
+        text = normalize_text(resp.choices[0].message.content or "")
+        if len(text) > 50:
+            return text
+    except Exception as exc:
+        print(f"[WARN] Weekly digest failed for {category}: {exc}")
+    return f"本周共收录 {len(items)} 篇文章（{date_range}）。"
 
 
 def parse_entry_date(entry, fallback):
@@ -221,7 +266,15 @@ def collect_data():
         item["summary"] = item.get("summary") or generate_ai_summary(client, item)
     inject_expert_cards(all_data)
     all_data.sort(key=lambda x: x["ts"], reverse=True)
-    return all_data, source_health
+    # Generate per-category weekly digests
+    weekly_digests = {}
+    for cat in CATEGORY_ORDER:
+        if cat == "专家动态":
+            continue
+        cat_items = [i for i in all_data if i["category"] == cat]
+        print(f"[INFO] Generating weekly digest for {cat} ({len(cat_items)} items)...")
+        weekly_digests[cat] = generate_weekly_digest(client, cat, cat_items)
+    return all_data, source_health, weekly_digests
 
 
 # ── HTML helpers ─────────────────────────────────────────────────────────────
@@ -269,17 +322,31 @@ def expert_card(item):
     )
 
 
-def page_section(category, items):
+def page_section(category, items, digest=""):
     meta = CATEGORY_META[category]
+    e = html.escape
     if category == "专家动态":
         inner = "".join(expert_card(i) for i in items)
         grid_cls = "expert-grid"
+        digest_html = ""
     else:
         inner = "".join(item_card(i) for i in items[:60])
         grid_cls = "news-grid"
+        if digest:
+            date_range = ""
+            if items:
+                dates = [i["date_str"] for i in items]
+                date_range = f"{min(dates)} ~ {max(dates)}"
+            digest_html = (
+                '<div class="digest-box" style="--ac:' + meta["accent"] + ';--lc:' + meta["light"] + '">'
+                '<div class="digest-label">📋 本周综述 <span class="digest-date">' + date_range + '</span></div>'
+                '<div class="digest-body">' + e(digest) + '</div>'
+                '</div>'
+            )
+        else:
+            digest_html = ""
     if not inner:
         inner = "<div class='empty'>No content fetched for this window.</div>"
-    e = html.escape
     return (
         '<section class="page-section" id="page-' + meta["slug"] + '" style="display:none">'
         '<div class="section-head">'
@@ -290,6 +357,7 @@ def page_section(category, items):
         '</div>'
         '<span class="section-count">' + str(len(items)) + ' items</span>'
         '</div>'
+        + digest_html +
         '<div class="' + grid_cls + '">' + inner + '</div>'
         '</section>'
     )
@@ -344,7 +412,7 @@ def health_rows(source_health):
 
 # ── Main render ───────────────────────────────────────────────────────────────
 
-def render_dashboard(all_data, source_health):
+def render_dashboard(all_data, source_health, weekly_digests):
     grouped = {cat: [] for cat in CATEGORY_ORDER}
     for item in all_data:
         if item["category"] in grouped:
@@ -376,7 +444,7 @@ def render_dashboard(all_data, source_health):
             '</a>'
         )
 
-    sections_html = "".join(page_section(cat, grouped[cat]) for cat in CATEGORY_ORDER)
+    sections_html = "".join(page_section(cat, grouped[cat], weekly_digests.get(cat, "")) for cat in CATEGORY_ORDER)
 
     page = """<!DOCTYPE html>
 <html lang="zh">
@@ -570,6 +638,17 @@ tr:last-child td{border-bottom:none}
 
 .empty{border:1px dashed var(--border2);border-radius:var(--r);padding:24px;color:var(--dim);text-align:center;grid-column:1/-1;font-size:14px}
 .footer{color:var(--dim);font-size:11px;font-family:var(--mono);margin-top:32px;padding-top:18px;border-top:1px solid var(--border)}
+.digest-box{
+  background:var(--lc,#eff6ff);border:1.5px solid var(--ac,#2563eb);border-radius:var(--r);
+  padding:18px 22px;margin-bottom:22px;position:relative;
+}
+.digest-label{
+  font-size:12px;font-weight:700;font-family:var(--mono);
+  color:var(--ac,#2563eb);text-transform:uppercase;letter-spacing:.07em;
+  margin-bottom:10px;display:flex;align-items:center;gap:10px;
+}
+.digest-date{font-weight:400;color:var(--muted);font-size:11px;letter-spacing:0}
+.digest-body{font-size:14px;line-height:1.85;color:var(--text);white-space:pre-wrap}
 
 @media(max-width:1000px){.home-panels{grid-template-columns:1fr}}
 @media(max-width:900px){
@@ -699,8 +778,8 @@ showPage("home");applyFilters();
 
 
 def fetch_data():
-    all_data, source_health = collect_data()
-    render_dashboard(all_data, source_health)
+    all_data, source_health, weekly_digests = collect_data()
+    render_dashboard(all_data, source_health, weekly_digests)
     print(f"[OK] Generated index.html with {len(all_data)} items")
 
 
