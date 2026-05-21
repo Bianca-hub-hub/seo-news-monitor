@@ -197,7 +197,7 @@ def generate_weekly_digest(client, category, items):
             by_source.setdefault(i["source"], []).append(i)
         paras = []
         for src, src_items in list(by_source.items())[:4]:
-            chunk_titles = "、".join(f"《{x["title"][:40]}》" for x in src_items[:2])
+            chunk_titles = "、".join("《" + x["title"][:40] + "》" for x in src_items[:2])
             paras.append({
                 "text": f"{src} 本周发布了关于 {chunk_titles} 等内容。",
                 "refs": [{"title": x["title"], "link": x["link"], "source": x["source"]} for x in src_items[:3]],
